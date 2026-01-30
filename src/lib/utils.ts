@@ -29,10 +29,10 @@ export function calculateUnitPrice(
   return totalCost;
 }
 
-// 格式化金额 - 不带币符，按规范显示
-export function formatCurrency(amount: number, _currency: string = '¥'): string {
-  // 调用formatNumber函数，确保金额显示格式一致且不包含币符
-  return formatNumber(amount);
+// 格式化金额 - 带币符，按规范显示
+export function formatCurrency(amount: number, currency: string = '¥'): string {
+  // 调用formatNumber函数，确保金额显示格式一致，然后添加币符
+  return `${currency}${formatNumber(amount)}`;
 }
 
 // 格式化金额（仅数字，不带货币符号）- 按规范显示

@@ -107,9 +107,11 @@ export function useTheme() {
     const root = document.documentElement;
     const colorHsl = THEME_COLORS[themeState.primaryColor][resolvedTheme];
     
-    // 设置主色调 - 正确包装hsl()函数
-    root.style.setProperty('--primary', `hsl(${colorHsl})`);
-    root.style.setProperty('--ring', `hsl(${colorHsl})`);
+    // 设置主色调
+    root.style.setProperty('--primary', colorHsl);
+    root.style.setProperty('--ring', colorHsl);
+    // 确保主色调文字颜色一致
+    root.style.setProperty('--primary-foreground', resolvedTheme === 'dark' ? '0 0% 100%' : '0 0% 100%');
     
     // 设置深色/浅色模式
     if (resolvedTheme === 'dark') {

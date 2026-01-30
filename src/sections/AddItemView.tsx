@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { ArrowLeft, Camera, Image as ImageIcon, X, Check, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -64,25 +64,23 @@ export function AddItemView({
   const [notes, setNotes] = useState(editingItem?.notes || '');
 
   // 实时计算单价 - 购买数量不参与计算
-  const unitPrice = calculateUnitPrice(
+  const unitPrice = useMemo(() => calculateUnitPrice(
     parseFloat(totalCost) || 0,
     parseFloat(quantity) || 1,
     calculationType,
     parseInt(totalUses) || undefined,
     parseInt(calculationType === 'perUse' ? estimatedUsageDays : usageDays) || undefined
-  );
+  ), [totalCost, quantity, calculationType, totalUses, estimatedUsageDays, usageDays]);
 
   // 计算下次购买日期
-  const calculateNextPurchaseDate = () => {
+  const nextPurchaseDate = useMemo(() => {
     if (!purchaseDate) return '';
     const days = calculationType === 'perUse' ? parseInt(estimatedUsageDays) : parseInt(usageDays);
     if (!days || days <= 0) return '';
     const date = new Date(purchaseDate);
     date.setDate(date.getDate() + days);
     return date.toISOString().split('T')[0];
-  };
-
-  const nextPurchaseDate = calculateNextPurchaseDate();
+  }, [purchaseDate, calculationType, estimatedUsageDays, usageDays]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -148,7 +146,7 @@ export function AddItemView({
       </div>
 
       <motion.div 
-        className="p-4 space-y-5 pb-36"
+        className="p-6 space-y-5 pb-48"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -427,9 +425,9 @@ export function AddItemView({
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t p-4"
+            className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t p-6 safe-area-pb"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Calculator className="w-5 h-5 text-primary" />
@@ -447,7 +445,7 @@ export function AddItemView({
                 onClick={handleSubmit} 
                 disabled={!isValid} 
                 size="lg"
-                className="rounded-xl px-6"
+                className="rounded-xl px-8 py-3"
               >
                 <Check className="w-4 h-4 mr-2" />
                 保存
