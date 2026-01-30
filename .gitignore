@@ -35,4 +35,3 @@ android/.gradle/
 android/local.properties
 
 # Capacitor
-capacitor.config.ts
