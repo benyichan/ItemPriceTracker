@@ -12,8 +12,9 @@ import {
   DollarSign,
   Clock
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { Item } from '@/types';
 import { formatCurrency, calculateUnitPrice, calculateEndDate, getRemainingDays, getDaysDifference, formatDate } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
@@ -133,93 +134,190 @@ export function HomeView({
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-32">
       {/* 顶部成本概览 - 科技感渐变卡片 */}
       <motion.div 
-        className="relative overflow-hidden"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        className="relative overflow-hidden rounded-b-3xl"
+        initial={{ opacity: 0, y: -50, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          duration: 0.8,
+          ease: "easeOut",
+          type: "spring",
+          stiffness: 120,
+          damping: 20
+        }}
         style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)` }}
       >
         {/* 背景装饰 */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-full h-full bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         
-        <div className="relative p-6 pt-10 pb-8">
+        <div className="relative p-8 pt-16 pb-16 max-w-4xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="space-y-4"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-white/70" />
-              <p className="text-white/70 text-sm font-medium tracking-wide">本月累计分摊成本</p>
-            </div>
-            <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
+            <motion.div 
+              className="flex items-center gap-3 mb-4"
+              whileHover={{ x: 5 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-6 h-6 text-white/80" />
+              </motion.div>
+              <p className="text-white/80 text-sm font-medium tracking-wider uppercase">月度摊销成本</p>
+            </motion.div>
+            <motion.h1 
+              className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               {formatCurrency(animatedCost, currency)}
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-white/80">
+            </motion.h1>
+            <motion.div 
+              className="flex items-center gap-3 text-sm text-white/90"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
               {monthlyComparison.growthRate > 0 ? (
                 <>
-                  <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>+{monthlyComparison.growthRate.toFixed(1)}%</span>
-                  </div>
-                  <span className="text-white/60">较上月</span>
+                  <motion.div 
+                    className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full"
+                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="font-medium">+{monthlyComparison.growthRate.toFixed(1)}%</span>
+                  </motion.div>
+                  <span className="text-white/70">较上月</span>
                 </>
               ) : monthlyComparison.growthRate < 0 ? (
                 <>
-                  <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
-                    <TrendingDown className="w-3 h-3" />
-                    <span>{monthlyComparison.growthRate.toFixed(1)}%</span>
-                  </div>
-                  <span className="text-white/60">较上月</span>
+                  <motion.div 
+                    className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full"
+                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                  >
+                    <TrendingDown className="w-4 h-4" />
+                    <span className="font-medium">{monthlyComparison.growthRate.toFixed(1)}%</span>
+                  </motion.div>
+                  <span className="text-white/70">较上月</span>
                 </>
               ) : (
-                <span className="text-white/60">与上月持平</span>
+                <span className="text-white/70">与上月持平</span>
               )}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </motion.div>
 
       {/* 成本统计卡片 */}
       <motion.div
-        className="p-4 -mt-6 relative z-10"
-        initial={{ opacity: 0, y: 20 }}
+        className="p-6 -mt-10 relative z-10 max-w-4xl mx-auto"
+        initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
+        transition={{
+          duration: 0.8,
+          delay: 0.4,
+          ease: "easeOut",
+          type: "spring",
+          stiffness: 100,
+          damping: 15
+        }}
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 总花费 */}
-          <Card className="overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-shadow border border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <DollarSign className="w-4 h-4" />
-                <span className="text-sm">总花费</span>
-              </div>
-              <p className="text-2xl font-bold">{formatCurrency(totalCost, currency)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                所有物品购买金额总和
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div
+            whileHover={{
+              y: -8,
+              scale: 1.03,
+              transition: {
+                duration: 0.2
+              }
+            }}
+          >
+            <Card className="overflow-hidden border border-border bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
+              <CardContent className="p-6">
+                <motion.div 
+                  className="flex items-center gap-3 text-muted-foreground mb-4"
+                  whileHover={{ x: 8 }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: 15, scale: 1.1 }}
+                  >
+                    <DollarSign className="w-6 h-6" />
+                  </motion.div>
+                  <span className="text-sm font-semibold uppercase tracking-wide">总花费</span>
+                </motion.div>
+                <motion.p 
+                  className="text-3xl font-bold mb-3"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  {formatCurrency(totalCost, currency)}
+                </motion.p>
+                <motion.p 
+                  className="text-xs text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  所有物品购买金额总和
+                </motion.p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* 今日分摊成本 */}
-          <Card className="overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-shadow border border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm">今日分摊成本</span>
-              </div>
-              <p className="text-2xl font-bold">{formatCurrency(todayDailyCost, currency)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                今日在下次购买日期之前的物品分摊
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div
+            whileHover={{
+              y: -8,
+              scale: 1.03,
+              transition: {
+                duration: 0.2
+              }
+            }}
+          >
+            <Card className="overflow-hidden border border-border bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
+              <CardContent className="p-6">
+                <motion.div 
+                  className="flex items-center gap-3 text-muted-foreground mb-4"
+                  whileHover={{ x: 8 }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: 15, scale: 1.1 }}
+                  >
+                    <Clock className="w-6 h-6" />
+                  </motion.div>
+                  <span className="text-sm font-semibold uppercase tracking-wide">每日成本</span>
+                </motion.div>
+                <motion.p 
+                  className="text-3xl font-bold mb-3"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  {formatCurrency(todayDailyCost, currency)}
+                </motion.p>
+                <motion.p 
+                  className="text-xs text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  下次购买日期前的物品每日摊销
+                </motion.p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </motion.div>
 
@@ -232,74 +330,129 @@ export function HomeView({
         {/* 快捷功能入口 */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-3 gap-3"
+          className="grid grid-cols-3 gap-4"
         >
           <motion.button
             onClick={onAddItem}
-            className="group flex flex-col items-center gap-2 p-4 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="group flex flex-col items-center gap-3 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
+            whileHover={{
+              y: -10,
+              scale: 1.05,
+              transition: {
+                duration: 0.2
+              }
+            }}
+            whileTap={{
+              scale: 0.95,
+              transition: {
+                duration: 0.1
+              }
+            }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
           >
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary/40 transition-shadow"
+            <motion.div 
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
               style={{ 
                 background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 4px 20px ${primaryColor}40`
+                boxShadow: `0 6px 25px ${primaryColor}40`
               }}
+              whileHover={{ rotate: 90 }}
+              transition={{ duration: 0.3 }}
             >
-              <Plus className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-sm font-medium">添加物品</span>
+              <Plus className="w-7 h-7 text-white" />
+            </motion.div>
+            <span className="text-sm font-semibold text-center">添加物品</span>
           </motion.button>
           
           <motion.button
             onClick={onViewAllItems}
-            className="group flex flex-col items-center gap-2 p-4 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="group flex flex-col items-center gap-3 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
+            whileHover={{
+              y: -10,
+              scale: 1.05,
+              transition: {
+                duration: 0.2
+              }
+            }}
+            whileTap={{
+              scale: 0.95,
+              transition: {
+                duration: 0.1
+              }
+            }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
           >
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary/40 transition-shadow"
+            <motion.div 
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
               style={{ 
                 background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 4px 20px ${primaryColor}40`
+                boxShadow: `0 6px 25px ${primaryColor}40`
               }}
+              whileHover={{ scale: 1.1 }}
+              transition={{ duration: 0.2 }}
             >
-              <Package className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-sm font-medium">物品列表</span>
+              <Package className="w-7 h-7 text-white" />
+            </motion.div>
+            <span className="text-sm font-semibold text-center">物品列表</span>
           </motion.button>
           
           <motion.button
             onClick={onViewStatistics}
-            className="group flex flex-col items-center gap-2 p-4 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="group flex flex-col items-center gap-3 p-5 bg-card rounded-2xl border border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
+            whileHover={{
+              y: -10,
+              scale: 1.05,
+              transition: {
+                duration: 0.2
+              }
+            }}
+            whileTap={{
+              scale: 0.95,
+              transition: {
+                duration: 0.1
+              }
+            }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
           >
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary/40 transition-shadow"
+            <motion.div 
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
               style={{ 
                 background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 4px 20px ${primaryColor}40`
+                boxShadow: `0 6px 25px ${primaryColor}40`
               }}
+              whileHover={{ rotate: -15 }}
+              transition={{ duration: 0.2 }}
             >
-              <FileText className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-sm font-medium">数据统计</span>
+              <FileText className="w-7 h-7 text-white" />
+            </motion.div>
+            <span className="text-sm font-semibold text-center">统计分析</span>
           </motion.button>
         </motion.div>
 
         {/* 即将到期提醒 */}
         {expiringItems.length > 0 && (
-          <motion.div variants={itemVariants}>
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <h2 className="text-lg font-semibold">即将到期</h2>
-              <span className="bg-amber-100 text-amber-600 text-xs px-2.5 py-0.5 rounded-full font-medium">
+          <motion.div variants={itemVariants} className="mb-6">
+            <motion.div 
+              className="flex items-center gap-3 mb-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <AlertTriangle className="w-6 h-6 text-amber-500" />
+              <h2 className="text-xl font-semibold">即将到期</h2>
+              <motion.span 
+                className="bg-amber-100 text-amber-600 text-xs px-3 py-1 rounded-full font-medium"
+                whileHover={{ scale: 1.1 }}
+              >
                 {expiringItems.length}
-              </span>
-            </div>
-            <div className="space-y-2">
+              </motion.span>
+            </motion.div>
+            <div className="space-y-3">
               {expiringItems.map((item, index) => {
                 const endDate = calculateEndDate(item.purchaseDate, item.usageDays);
                 const remaining = endDate ? getRemainingDays(endDate) : 0;
@@ -307,35 +460,41 @@ export function HomeView({
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    transition={{ duration: 0.4, delay: index * 0.15 }}
+                    whileHover={{ x: 10 }}
                   >
                     <Card 
-                      className="cursor-pointer hover:shadow-md transition-all border-amber-200/50 bg-gradient-to-r from-amber-50/50 to-transparent hover:from-amber-50/80"
+                      className="cursor-pointer hover:shadow-lg hover:shadow-amber-100 transition-all border-amber-200/50 bg-gradient-to-r from-amber-50/70 to-transparent hover:from-amber-50/90 rounded-xl"
                       onClick={() => onViewItem(item)}
                     >
-                      <CardContent className="p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
                           {item.image ? (
-                            <img 
+                            <motion.img 
                               src={item.image} 
                               alt={item.name}
-                              className="w-11 h-11 rounded-xl object-cover shadow-sm"
+                              className="w-14 h-14 rounded-xl object-cover shadow-md"
+                              whileHover={{ scale: 1.1, rotate: 5 }}
                             />
                           ) : (
-                            <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center">
-                              <Package className="w-5 h-5 text-muted-foreground" />
+                            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shadow-sm">
+                              <Package className="w-6 h-6 text-muted-foreground" />
                             </div>
                           )}
-                          <div>
-                            <p className="font-medium text-sm">{item.name}</p>
-                            <p className="text-xs text-amber-600 font-medium">
+                          <div className="flex-1">
+                            <p className="font-semibold text-base">{item.name}</p>
+                            <p className="text-sm text-amber-600 font-medium mt-1">
                               {remaining === 0 ? '今天到期' : `还有 ${remaining} 天`}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        <motion.div
+                          whileHover={{ rotate: 90 }}
+                        >
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        </motion.div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -346,20 +505,24 @@ export function HomeView({
         )}
 
         {/* 最近购买 */}
-        <motion.div variants={itemVariants}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">最近购买</h2>
+        <motion.div variants={itemVariants} className="mb-6">
+          <motion.div 
+            className="flex items-center justify-between mb-4"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-xl font-semibold">最近购买</h2>
             <motion.button 
               onClick={onViewAllItems}
-              className="text-sm text-primary flex items-center gap-1 hover:underline"
-              whileHover={{ x: 2 }}
+              className="text-sm text-primary flex items-center gap-1 hover:underline font-medium"
+              whileHover={{ x: 5, scale: 1.05 }}
             >
               查看全部 <ChevronRight className="w-4 h-4" />
             </motion.button>
-          </div>
+          </motion.div>
           
           {recentPurchasedItems.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recentPurchasedItems.map((item, index) => {
                 const unitPrice = calculateUnitPrice(
                   item.totalCost,
@@ -373,50 +536,52 @@ export function HomeView({
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ y: -5 }}
                   >
                     <Card 
-                      className="cursor-pointer hover:shadow-lg hover:shadow-primary/5 transition-all border-border hover:border-primary/30"
+                      className="cursor-pointer hover:shadow-xl hover:shadow-primary/10 transition-all border-border hover:border-primary/30 rounded-xl"
                       onClick={() => onViewItem(item)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4 mb-3">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-5 mb-4">
                           {item.image ? (
-                            <img 
+                            <motion.img 
                               src={item.image} 
                               alt={item.name}
-                              className="w-14 h-14 rounded-xl object-cover shadow-sm"
+                              className="w-16 h-16 rounded-xl object-cover shadow-md"
+                              whileHover={{ scale: 1.1 }}
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-                              <Package className="w-7 h-7 text-muted-foreground" />
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center shadow-sm">
+                              <Package className="w-8 h-8 text-muted-foreground" />
                             </div>
                           )}
                           <div className="flex-1">
-                            <p className="font-semibold text-base">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="font-bold text-lg">{item.name}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
                               {item.category || '未分类'} · {item.quantity} 件
                             </p>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">购买日期</p>
-                            <p className="font-medium">{formatDate(item.purchaseDate)}</p>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">购买日期</p>
+                            <p className="font-semibold">{formatDate(item.purchaseDate)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">购买价格</p>
-                            <p className="font-medium text-primary">{formatCurrency(item.totalCost, currency)}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">购买价格</p>
+                            <p className="font-semibold text-primary">{formatCurrency(item.totalCost, currency)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">每日成本</p>
-                            <p className="font-medium">{formatCurrency(unitPrice, currency)}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.calculationType === 'perUse' ? '单次成本' : '每日成本'}</p>
+                            <p className="font-semibold">{formatCurrency(unitPrice, currency)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">下次购买日期</p>
-                            <p className="font-medium">{endDate ? formatDate(endDate) : '无'}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">下次购买日期</p>
+                            <p className="font-semibold">{endDate ? formatDate(endDate) : '无'}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -426,24 +591,42 @@ export function HomeView({
               })}
             </div>
           ) : (
-            <Card className="p-8 text-center border-dashed">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
-                <Package className="w-8 h-8 text-muted-foreground" />
+            <motion.div 
+              className="p-10 text-center border border-dashed rounded-xl"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-5">
+                <Package className="w-10 h-10 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mb-4">还没有添加任何物品</p>
-              <Button onClick={onAddItem} className="rounded-full">
-                <Plus className="w-4 h-4 mr-2" />
-                添加第一个物品
-              </Button>
-            </Card>
+              <p className="text-muted-foreground mb-5 text-base">暂无物品</p>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  onClick={onAddItem} 
+                  className="rounded-full px-8 py-3"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  添加第一个物品
+                </Button>
+              </motion.div>
+            </motion.div>
           )}
         </motion.div>
 
         {/* 价格最高 */}
         {topPriceItems.length > 0 && (
-          <motion.div variants={itemVariants}>
-            <h2 className="text-lg font-semibold mb-3">价格最高</h2>
-            <div className="space-y-3">
+          <motion.div variants={itemVariants} className="mb-6">
+            <motion.h2 
+              className="text-xl font-semibold mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              最昂贵物品
+            </motion.h2>
+            <div className="space-y-4">
               {topPriceItems.map((item, index) => {
                 const unitPrice = calculateUnitPrice(
                   item.totalCost,
@@ -457,53 +640,58 @@ export function HomeView({
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    transition={{ duration: 0.4, delay: index * 0.15 }}
+                    whileHover={{ x: -5 }}
                   >
                     <Card 
-                      className="cursor-pointer hover:shadow-lg hover:shadow-primary/5 transition-all border-border hover:border-primary/30"
+                      className="cursor-pointer hover:shadow-xl hover:shadow-primary/10 transition-all border-border hover:border-primary/30 rounded-xl"
                       onClick={() => onViewItem(item)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4 mb-3">
-                          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-5 mb-4">
+                          <motion.span 
+                            className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0"
+                            whileHover={{ scale: 1.1, rotate: 10 }}
+                          >
                             {index + 1}
-                          </span>
+                          </motion.span>
                           {item.image ? (
-                            <img 
+                            <motion.img 
                               src={item.image} 
                               alt={item.name}
-                              className="w-14 h-14 rounded-xl object-cover shadow-sm"
+                              className="w-16 h-16 rounded-xl object-cover shadow-md"
+                              whileHover={{ scale: 1.1 }}
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-                              <Package className="w-7 h-7 text-muted-foreground" />
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center shadow-sm">
+                              <Package className="w-8 h-8 text-muted-foreground" />
                             </div>
                           )}
                           <div className="flex-1">
-                            <p className="font-semibold text-base">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="font-bold text-lg">{item.name}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
                               {item.category || '未分类'} · {item.quantity} 件
                             </p>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">购买日期</p>
-                            <p className="font-medium">{formatDate(item.purchaseDate)}</p>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">购买日期</p>
+                            <p className="font-semibold">{formatDate(item.purchaseDate)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">购买价格</p>
-                            <p className="font-medium text-primary">{formatCurrency(item.totalCost, currency)}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">购买价格</p>
+                            <p className="font-semibold text-primary">{formatCurrency(item.totalCost, currency)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">每日成本</p>
-                            <p className="font-medium">{formatCurrency(unitPrice, currency)}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.calculationType === 'perUse' ? '单次成本' : '每日成本'}</p>
+                            <p className="font-semibold">{formatCurrency(unitPrice, currency)}</p>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">下次购买日期</p>
-                            <p className="font-medium">{endDate ? formatDate(endDate) : '无'}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">下次购买日期</p>
+                            <p className="font-semibold">{endDate ? formatDate(endDate) : '无'}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -520,16 +708,37 @@ export function HomeView({
       <motion.button
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
-        whileHover={{ scale: 1.05, rotate: 90 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{
+          scale: 1.15,
+          rotate: 90,
+          boxShadow: `0 8px 30px ${primaryColor}60`
+        }}
+        whileTap={{
+          scale: 0.9,
+          transition: {
+            duration: 0.1
+          }
+        }}
         onClick={onAddItem}
-        className="fixed bottom-28 right-5 w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center z-50"
+        className="fixed bottom-32 right-6 w-16 h-16 rounded-2xl shadow-2xl flex items-center justify-center z-50"
         style={{ 
           background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-          boxShadow: `0 4px 20px ${primaryColor}40`
+          boxShadow: `0 6px 25px ${primaryColor}40`
         }}
       >
-        <Plus className="w-6 h-6 text-white" />
+        <motion.div
+          animate={{ rotate: [0, 360] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "linear"
+          }}
+          className="absolute inset-0"
+        >
+          <div className="w-full h-full border-2 border-white/30 rounded-2xl animate-ping" />
+        </motion.div>
+        <Plus className="w-7 h-7 text-white relative z-10" />
       </motion.button>
     </div>
   );

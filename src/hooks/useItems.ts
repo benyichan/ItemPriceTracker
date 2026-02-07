@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Item } from '@/types';
 import { getAllItems, addItem, updateItem, deleteItem, getItemsByStatus } from '@/lib/db';
+import { generateId } from '@/lib/helpers';
 
 export function useItems() {
   const [items, setItems] = useState<Item[]>([]);
@@ -28,7 +29,7 @@ export function useItems() {
     try {
       const newItem: Item = {
         ...itemData,
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        id: generateId(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -78,6 +79,25 @@ export function useItems() {
     return getItemsByStatus('finished');
   }, []);
 
+  const getItemsByCategory = useCallback(async (category: string) => {
+    const allItems = await getAllItems();
+    return allItems.filter(item => item.category === category);
+  }, []);
+
+  const getExpiringItems = useCallback(async (daysBefore: number = 3) => {
+    const activeItems = await getItemsByStatus('active');
+    const now = new Date();
+    
+    return activeItems.filter(item => {
+      if (!item.usageDays) return false;
+      const endDate = new Date(item.purchaseDate);
+      endDate.setDate(endDate.getDate() + item.usageDays);
+      const diffTime = endDate.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 && diffDays <= daysBefore;
+    });
+  }, []);
+
   return {
     items,
     loading,
@@ -88,5 +108,7 @@ export function useItems() {
     removeItem,
     getActiveItems,
     getFinishedItems,
+    getItemsByCategory,
+    getExpiringItems,
   };
 }

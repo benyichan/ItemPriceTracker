@@ -1,16 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { 
   ArrowLeft, 
   Moon, 
   Palette, 
-  Download, 
-  Upload,
-  Trash2,
-  Info,
-  ChevronRight,
-  Sun,
-  Monitor,
+  Info, 
+  Sun, 
+  Monitor, 
   Check
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,8 +23,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { Settings } from '@/types';
 import type { ThemeColor } from '@/hooks/useTheme';
-import { exportData, importData, clearAllData } from '@/lib/db';
-import { downloadFile, readFile } from '@/lib/utils';
+import { clearAllData } from '@/lib/db';
+import { BackupManager } from '@/components/BackupManager';
+import { ReminderManager } from '@/components/ReminderManager';
 
 interface SettingsViewProps {
   settings: Settings;
@@ -77,49 +74,10 @@ export function SettingsView({
   onThemeChange,
   onColorChange,
 }: SettingsViewProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importDataState, setImportDataState] = useState<unknown>(null);
-
-  const handleExport = async () => {
-    const data = await exportData();
-    const json = JSON.stringify(data, null, 2);
-    const timestamp = new Date().toISOString().split('T')[0];
-    downloadFile(json, `item-manager-backup-${timestamp}.json`);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const content = await readFile(file);
-      const data = JSON.parse(content);
-      setImportDataState(data);
-      setShowImportDialog(true);
-    } catch {
-      alert('文件格式错误，请选择有效的备份文件');
-    }
-  };
-
-  const handleImportConfirm = async () => {
-    if (!importDataState) return;
-
-    try {
-      await importData(importDataState as { items?: []; settings?: Settings; reminders?: [] });
-      onDataChanged();
-      setShowImportDialog(false);
-      setImportDataState(null);
-      alert('数据导入成功！');
-    } catch {
-      alert('导入失败，请检查文件格式');
-    }
-  };
+  const [showAuthorInfo, setShowAuthorInfo] = useState(false);
+  const clickCountRef = useRef(0);
+  const lastClickTimeRef = useRef(0);
 
   const handleClearData = async () => {
     await clearAllData();
@@ -127,6 +85,34 @@ export function SettingsView({
     setShowClearDialog(false);
     alert('所有数据已清除！');
   };
+
+  const handleVersionClick = useCallback(() => {
+    const currentTime = Date.now();
+    
+    // 检查是否在3秒内的点击
+    if (currentTime - lastClickTimeRef.current > 3000) {
+      // 超过3秒，重置计数
+      clickCountRef.current = 1;
+      lastClickTimeRef.current = currentTime;
+    } else {
+      // 在3秒内，增加计数
+      clickCountRef.current += 1;
+      
+      // 检查是否达到3次点击
+      if (clickCountRef.current >= 3) {
+        // 显示作者信息
+        setShowAuthorInfo(true);
+        // 重置计数
+        clickCountRef.current = 0;
+        lastClickTimeRef.current = 0;
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+          setShowAuthorInfo(false);
+        }, 3000);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -200,7 +186,7 @@ export function SettingsView({
                   ) : (
                     <Sun className="w-4 h-4 text-primary" />
                   )}
-                  <Label htmlFor="dark-mode" className="font-medium">外观模式</Label>
+                  <Label htmlFor="dark-mode" className="font-medium">主题</Label>
                 </div>
                 <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
                   {(['light', 'dark', 'system'] as const).map((t) => (
@@ -230,68 +216,32 @@ export function SettingsView({
           <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
             数据管理
           </h2>
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <motion.button
-                onClick={handleExport}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Download className="w-4 h-4 text-green-600" />
-                  </div>
-                  <span className="font-medium">手动备份</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </motion.button>
-
-              <div className="border-t mx-4" />
-
-              <motion.button
-                onClick={handleImportClick}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Upload className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <span className="font-medium">导入数据</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </motion.button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              <div className="border-t mx-4" />
-
-              <motion.button
-                onClick={() => setShowClearDialog(true)}
-                className="w-full flex items-center justify-between p-4 hover:bg-red-50 transition-colors text-red-500"
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center">
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </div>
-                  <span className="font-medium">清除所有数据</span>
-                </div>
-                <ChevronRight className="w-5 h-5" />
-              </motion.button>
-            </CardContent>
-          </Card>
+          <BackupManager onDataChanged={onDataChanged} />
         </motion.section>
 
-
+        {/* 提醒设置 */}
+        <motion.section variants={itemVariants}>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+            提醒设置
+          </h2>
+          <ReminderManager 
+            items={[]} 
+            settings={{ 
+              theme: 'system',
+              primaryColor: '#2A5CAA',
+              currency: '¥',
+              quantityUnit: '件',
+              reminderEnabled: true,
+              reminderTime: '09:00',
+              reminderDaysBefore: 3,
+              autoBackup: false,
+              backupFrequency: 'weekly',
+              defaultCategory: '日用品',
+              defaultCalculationType: 'perUse'
+            }} 
+            onUpdateSettings={() => {}}
+          />
+        </motion.section>
 
         {/* 关于 */}
         <motion.section variants={itemVariants}>
@@ -300,18 +250,47 @@ export function SettingsView({
           </h2>
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="flex items-center justify-between p-4">
+              <motion.div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={handleVersionClick}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
                     <Info className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <span className="font-medium">版本信息</span>
                 </div>
-                <span className="text-muted-foreground font-mono">v2.0.0</span>
-              </div>
+                <span className="text-muted-foreground font-mono">v3.0.0</span>
+              </motion.div>
             </CardContent>
           </Card>
         </motion.section>
+
+        {/* 作者信息 */}
+        {showAuthorInfo && (
+          <motion.section 
+            variants={itemVariants}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="overflow-hidden border-primary/30 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Info className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                  <p className="font-medium text-primary">本软件作者：本义</p>
+                </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.section>
+        )}
 
         {/* 隐私说明 */}
         <motion.div 
@@ -322,7 +301,7 @@ export function SettingsView({
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span>所有数据仅存储在本地设备</span>
           </div>
-          <p>不会上传到任何服务器</p>
+          <p>无数据上传到任何服务器</p>
         </motion.div>
       </motion.div>
 
@@ -330,37 +309,21 @@ export function SettingsView({
       <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>确认清除所有数据</AlertDialogTitle>
+            <AlertDialogTitle>确认删除所有数据</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作将删除所有物品数据，且无法恢复。建议先导出备份。
+              此操作将清除所有数据，且无法恢复。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleClearData} className="bg-red-500 hover:bg-red-600 rounded-xl">
-              确认清除
+              确认删除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 导入确认对话框 */}
-      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <AlertDialogContent className="rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认导入数据</AlertDialogTitle>
-            <AlertDialogDescription>
-              导入将覆盖现有数据，建议先导出当前数据备份。是否继续？
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleImportConfirm} className="rounded-xl">
-              确认导入
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }

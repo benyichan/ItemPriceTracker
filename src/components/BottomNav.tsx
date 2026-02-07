@@ -27,28 +27,65 @@ export function BottomNav({ currentView, onViewChange }: BottomNavProps) {
             <motion.button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors relative ${
+              className={`flex flex-col items-center gap-1 px-4 py-3 rounded-2xl transition-all relative ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{
+                scale: 1.08,
+                y: -2,
+                transition: {
+                  duration: 0.2,
+                  ease: "easeOut"
+                }
+              }}
+              whileTap={{
+                scale: 0.95,
+                transition: {
+                  duration: 0.1
+                }
+              }}
             >
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-indicator"
-                  className="absolute inset-0 bg-primary/10 rounded-xl"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  className="absolute inset-0 bg-primary/15 rounded-2xl"
+                  transition={{
+                    type: 'spring',
+                    bounce: 0.3,
+                    duration: 0.5
+                  }}
                 />
               )}
-              <Icon className={`w-5 h-5 relative z-10 transition-transform ${isActive ? 'scale-110' : ''}`} />
-              <span className={`text-xs relative z-10 font-medium ${isActive ? 'text-primary' : ''}`}>
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{ scale: isActive ? 1.2 : 1 }}
+                transition={{
+                  type: 'spring',
+                  bounce: 0.4,
+                  duration: 0.5
+                }}
+                className="relative z-10"
+              >
+                <Icon className={`w-6 h-6 ${isActive ? 'text-primary' : ''}`} />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0.7 }}
+                animate={{ opacity: isActive ? 1 : 0.7 }}
+                className={`text-xs relative z-10 font-medium ${isActive ? 'text-primary font-semibold' : ''}`}
+              >
                 {item.label}
-              </span>
+              </motion.span>
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-dot"
-                  className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  className="absolute -bottom-1 w-2 h-2 rounded-full bg-primary"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{
+                    type: 'spring',
+                    bounce: 0.5,
+                    duration: 0.4
+                  }}
                 />
               )}
             </motion.button>

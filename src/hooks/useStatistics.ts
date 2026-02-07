@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import type { Item, Statistics } from '@/types';
 import { 
   calculateUnitPrice, 
-  getMonthRange
-} from '@/lib/utils';
+  getMonthRange,
+  formatDate
+} from '@/lib/helpers';
 
 export function useStatistics(items: Item[]) {
   const statistics = useMemo<Statistics>(() => {
@@ -74,7 +75,7 @@ export function useStatistics(items: Item[]) {
         // 将每日分摊金额分摊到购买日期至下次购买日期之间的每一天
         // 但只计算在指定范围内的日期
         for (let d = new Date(itemStart); d <= itemEnd; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split('T')[0];
+          const dateStr = formatDate(d);
           // 只计算在指定范围内的日期
           if (d >= start && d <= end) {
             if (!dailyCosts[dateStr]) dailyCosts[dateStr] = 0;
@@ -88,7 +89,7 @@ export function useStatistics(items: Item[]) {
     };
     
     // 当前月份的结束日期是今天
-    const today = now.toISOString().split('T')[0];
+    const today = formatDate(now);
     const currentCost = calculateMonthlyAllocatedCost(currentMonth.start, today, items);
     
     // 上个月的结束日期是上个月的最后一天
@@ -104,8 +105,64 @@ export function useStatistics(items: Item[]) {
     };
   }, [items]);
 
+  // 分类统计
+  const categoryStatistics = useMemo(() => {
+    const categoryMap = new Map<string, { count: number; totalCost: number }>();
+    
+    items.forEach(item => {
+      const category = item.category || '未分类';
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, { count: 0, totalCost: 0 });
+      }
+      const categoryData = categoryMap.get(category)!;
+      categoryData.count++;
+      categoryData.totalCost += item.totalCost;
+    });
+    
+    const totalItems = items.length;
+    const totalCost = items.reduce((sum, item) => sum + item.totalCost, 0);
+    
+    return Array.from(categoryMap.entries()).map(([category, data]) => ({
+      category,
+      count: data.count,
+      totalCost: data.totalCost,
+      percentage: totalItems > 0 ? (data.count / totalItems) * 100 : 0,
+      costPercentage: totalCost > 0 ? (data.totalCost / totalCost) * 100 : 0,
+    }));
+  }, [items]);
+
+  // 趋势数据
+  const trendData = useMemo(() => {
+    const now = new Date();
+    const trends: Array<{ date: string; cost: number; count: number }> = [];
+    
+    // 生成过去6个月的数据
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(now.getMonth() - i);
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      const monthItems = items.filter(item => {
+        const purchaseMonth = `${new Date(item.purchaseDate).getFullYear()}-${String(new Date(item.purchaseDate).getMonth() + 1).padStart(2, '0')}`;
+        return purchaseMonth === monthStr;
+      });
+      
+      const monthCost = monthItems.reduce((sum, item) => sum + item.totalCost, 0);
+      
+      trends.push({
+        date: monthStr,
+        cost: monthCost,
+        count: monthItems.length,
+      });
+    }
+    
+    return trends;
+  }, [items]);
+
   return {
     statistics,
     monthlyComparison,
+    categoryStatistics,
+    trendData,
   };
 }

@@ -145,7 +145,7 @@ export function ItemListView({
         if (remaining <= 3) {
           return (
             <span className="px-2.5 py-0.5 bg-amber-100 text-amber-600 text-xs rounded-full font-medium">
-              剩{remaining}天
+              即将过期
             </span>
           );
         }
@@ -153,7 +153,7 @@ export function ItemListView({
     }
     return (
       <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full font-medium">
-        使用中
+        进行中
       </span>
     );
   };
@@ -189,7 +189,7 @@ export function ItemListView({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="搜索物品..."
+              placeholder="搜索物品"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 rounded-xl"
@@ -363,7 +363,7 @@ export function ItemListView({
                             {item.category || '未分类'} · {item.quantity} 件
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(item.purchaseDate).toLocaleDateString('zh-CN')}
+                            {new Date(item.purchaseDate).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
