@@ -265,7 +265,7 @@ export function ItemListView({
       </div>
 
       {/* 物品列表 */}
-      <div className="p-4">
+      <div className="p-4 pb-24">
         {filteredItems.length > 0 ? (
           <motion.div 
             className={viewType === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}

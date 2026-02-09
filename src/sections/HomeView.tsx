@@ -243,7 +243,7 @@ export function HomeView({
               }
             }}
           >
-            <Card className="overflow-hidden border border-border bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
+            <Card className="overflow-hidden border border-border bg-primary/10 backdrop-blur-sm shadow-xl shadow-primary/5 hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
               <CardContent className="p-6">
                 <motion.div 
                   className="flex items-center gap-3 text-muted-foreground mb-4"
@@ -286,7 +286,7 @@ export function HomeView({
               }
             }}
           >
-            <Card className="overflow-hidden border border-border bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
+            <Card className="overflow-hidden border border-border bg-primary/10 backdrop-blur-sm shadow-xl shadow-primary/5 hover:shadow-2xl hover:shadow-primary/15 transition-all duration-300 rounded-2xl">
               <CardContent className="p-6">
                 <motion.div 
                   className="flex items-center gap-3 text-muted-foreground mb-4"
