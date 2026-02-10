@@ -355,9 +355,11 @@ export function ItemListView({
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium truncate">{item.name}</p>
-                            {getStatusBadge(item)}
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium truncate flex-1">{item.name}</p>
+                            <div className="flex-shrink-0">
+                              {getStatusBadge(item)}
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             {item.category || '未分类'} · {item.quantity} 件

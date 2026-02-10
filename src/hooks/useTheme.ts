@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Preferences } from '@capacitor/preferences';
 
 export type ThemeColor = 
@@ -41,12 +41,17 @@ const THEME_COLORS: Record<ThemeColor, { light: string; dark: string }> = {
   },
 };
 
+const THEME_KEY = 'item-manager-theme';
+const DEFAULT_THEME: ThemeState = {
+  theme: 'system',
+  primaryColor: '#2A5CAA',
+};
+
 export function useTheme() {
-  const [themeState, setThemeState] = useState<ThemeState>({
-    theme: 'system',
-    primaryColor: '#2A5CAA',
-  });
+  const [themeState, setThemeState] = useState<ThemeState>(DEFAULT_THEME);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
+  const isMountedRef = useRef(true);
 
   // 解析实际主题（处理 system 情况）
   useEffect(() => {
@@ -54,8 +59,10 @@ export function useTheme() {
       if (themeState.theme === 'system') {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         setResolvedTheme(prefersDark ? 'dark' : 'light');
+        console.log('Theme resolved from system:', prefersDark ? 'dark' : 'light');
       } else {
         setResolvedTheme(themeState.theme);
+        console.log('Theme resolved from settings:', themeState.theme);
       }
     };
 
@@ -64,38 +71,77 @@ export function useTheme() {
     // 监听系统主题变化
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      if (themeState.theme === 'system') {
+      if (themeState.theme === 'system' && isMountedRef.current) {
         setResolvedTheme(e.matches ? 'dark' : 'light');
+        console.log('System theme changed to:', e.matches ? 'dark' : 'light');
       }
     };
 
     mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+      isMountedRef.current = false;
+    };
   }, [themeState.theme]);
 
   // 从 Preferences 加载主题
   useEffect(() => {
     const loadTheme = async () => {
-      try {
-        const { value } = await Preferences.get({
-          key: 'item-manager-theme'
-        });
+      console.log('Starting to load theme settings...');
+      
+      // 尝试多次加载，提高可靠性
+      let attempts = 0;
+      const maxAttempts = 3;
+      let loadedSuccessfully = false;
+
+      while (attempts < maxAttempts && !loadedSuccessfully) {
+        attempts++;
+        console.log(`Theme load attempt ${attempts}/${maxAttempts}`);
         
-        if (value) {
-          try {
-            const parsed = JSON.parse(value);
-            setThemeState(parsed);
-            console.log('Theme settings loaded successfully:', parsed);
-          } catch (parseError) {
-            console.error('Error parsing theme settings:', parseError);
-            // 解析失败时使用默认值
+        try {
+          const { value } = await Preferences.get({
+            key: THEME_KEY
+          });
+          
+          console.log('Raw theme value retrieved:', value);
+          
+          if (value) {
+            try {
+              const parsed = JSON.parse(value);
+              console.log('Parsed theme settings:', parsed);
+              
+              // 验证主题设置的有效性
+              if (parsed.theme && parsed.primaryColor) {
+                if (isMountedRef.current) {
+                  setThemeState(parsed);
+                  console.log('Theme settings loaded successfully on attempt', attempts);
+                }
+                loadedSuccessfully = true;
+              } else {
+                console.error('Invalid theme settings structure:', parsed);
+              }
+            } catch (parseError) {
+              console.error('Error parsing theme settings (attempt', attempts, '):', parseError);
+            }
+          } else {
+            console.log('No saved theme settings found (attempt', attempts, ')');
           }
-        } else {
-          console.log('No saved theme settings found, using defaults');
+        } catch (error) {
+          console.error('Error loading theme settings (attempt', attempts, '):', error);
+          // 等待一段时间后重试
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
         }
-      } catch (error) {
-        console.error('Error loading theme settings:', error);
-        // 加载失败时使用默认值
+      }
+
+      if (!loadedSuccessfully) {
+        console.log('All attempts failed, using default theme');
+      }
+      
+      if (isMountedRef.current) {
+        setIsThemeLoaded(true);
+        console.log('Theme loading process completed');
       }
     };
 
@@ -104,6 +150,10 @@ export function useTheme() {
 
   // 应用主题到 DOM
   useEffect(() => {
+    if (!isThemeLoaded) return;
+    
+    console.log('Applying theme to DOM:', { themeState, resolvedTheme });
+    
     const root = document.documentElement;
     const colorHsl = THEME_COLORS[themeState.primaryColor][resolvedTheme];
     
@@ -120,32 +170,43 @@ export function useTheme() {
       root.classList.remove('dark');
     }
 
-    // 保存到 Preferences
+    console.log('Theme applied successfully');
+  }, [themeState, resolvedTheme, isThemeLoaded]);
+
+  // 保存主题设置
+  useEffect(() => {
+    if (!isThemeLoaded) return;
+    
     const saveTheme = async () => {
+      console.log('Saving theme settings:', themeState);
+      
       try {
         await Preferences.set({
-          key: 'item-manager-theme',
+          key: THEME_KEY,
           value: JSON.stringify(themeState)
         });
-        console.log('Theme settings saved successfully:', themeState);
+        console.log('Theme settings saved successfully');
       } catch (error) {
         console.error('Error saving theme settings:', error);
-        // 保存失败时使用默认值，但应用仍能正常运行
+        // 保存失败时继续使用当前状态，不回退到默认值
       }
     };
 
     saveTheme();
-  }, [themeState, resolvedTheme]);
+  }, [themeState, isThemeLoaded]);
 
   const setTheme = useCallback((theme: 'light' | 'dark' | 'system') => {
+    console.log('Setting theme to:', theme);
     setThemeState(prev => ({ ...prev, theme }));
   }, []);
 
   const setPrimaryColor = useCallback((primaryColor: ThemeColor) => {
+    console.log('Setting primary color to:', primaryColor);
     setThemeState(prev => ({ ...prev, primaryColor }));
   }, []);
 
   const updateTheme = useCallback((updates: Partial<ThemeState>) => {
+    console.log('Updating theme with:', updates);
     setThemeState(prev => ({ ...prev, ...updates }));
   }, []);
 
@@ -153,6 +214,7 @@ export function useTheme() {
     theme: themeState.theme,
     primaryColor: themeState.primaryColor,
     resolvedTheme,
+    isThemeLoaded,
     setTheme,
     setPrimaryColor,
     updateTheme,

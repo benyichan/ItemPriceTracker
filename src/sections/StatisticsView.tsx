@@ -3,6 +3,7 @@ import {
   ArrowLeft, Package, DollarSign, Calendar, Clock, TrendingUp, Tag 
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Heatmap } from '@/components/Heatmap';
 import { useTheme } from '@/hooks/useTheme';
 import type { Item } from '@/types';
 
@@ -97,7 +98,7 @@ export function StatisticsView({
   };
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen bg-background pb-24">
       {/* 顶部导航 */}
       <div className="sticky top-0 z-10 glass border-b">
         <div className="flex items-center gap-3 p-4">
@@ -240,6 +241,14 @@ export function StatisticsView({
               </CardContent>
             </Card>
           </div>
+        </motion.section>
+
+        {/* 消费热力图 */}
+        <motion.section variants={itemVariants}>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+            消费趋势
+          </h2>
+          <Heatmap items={items} />
         </motion.section>
       </motion.div>
     </div>
