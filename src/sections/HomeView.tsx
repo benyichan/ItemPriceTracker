@@ -624,9 +624,9 @@ export function HomeView({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              最昂贵物品
+              价值最高的物品
             </motion.h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {topPriceItems.map((item, index) => {
                 const unitPrice = calculateUnitPrice(
                   item.totalCost,
@@ -637,40 +637,60 @@ export function HomeView({
                 );
                 const endDate = calculateEndDate(item.purchaseDate, item.usageDays);
                 
+                // 根据排名设置不同的样式
+                let cardClassName = '';
+                let badgeClassName = '';
+                let badgeContent = '';
+                let hoverEffect = {};
+                
+                switch (index) {
+                  case 0: // 第1名
+                    cardClassName = "cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all border-2 border-primary/70 bg-gradient-to-br from-primary/5 to-transparent hover:from-primary/10 rounded-xl scale-105";
+                    badgeClassName = "h-6 flex items-center justify-center text-lg font-bold flex-shrink-0";
+                    badgeContent = "🥇";
+                    hoverEffect = { x: -8, scale: 1.02 };
+                    break;
+                  case 1: // 第2名
+                    cardClassName = "cursor-pointer hover:shadow-xl hover:shadow-primary/15 transition-all border-2 border-primary/50 bg-gradient-to-br from-primary/3 to-transparent hover:from-primary/8 rounded-xl scale-102";
+                    badgeClassName = "h-6 flex items-center justify-center text-base font-bold flex-shrink-0";
+                    badgeContent = "🥈";
+                    hoverEffect = { x: -6, scale: 1.01 };
+                    break;
+                  case 2: // 第3名
+                    cardClassName = "cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all border-2 border-primary/30 bg-gradient-to-br from-primary/2 to-transparent hover:from-primary/5 rounded-xl";
+                    badgeClassName = "h-6 flex items-center justify-center text-sm font-bold flex-shrink-0";
+                    badgeContent = "🥉";
+                    hoverEffect = { x: -5 };
+                    break;
+                  default:
+                    cardClassName = "cursor-pointer hover:shadow-xl hover:shadow-primary/10 transition-all border-border hover:border-primary/30 rounded-xl";
+                    badgeClassName = "h-6 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0";
+                    badgeContent = (index + 1).toString();
+                    hoverEffect = { x: -5 };
+                }
+                
                 return (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.15 }}
-                    whileHover={{ x: -5 }}
+                    whileHover={hoverEffect}
                   >
                     <Card 
-                      className="cursor-pointer hover:shadow-xl hover:shadow-primary/10 transition-all border-border hover:border-primary/30 rounded-xl"
+                      className={cardClassName}
                       onClick={() => onViewItem(item)}
                     >
                       <CardContent className="p-5">
-                        <div className="flex items-center gap-5 mb-4">
+                        <div className="flex items-center gap-6 mb-4">
                           <motion.span 
-                            className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0"
-                            whileHover={{ scale: 1.1, rotate: 10 }}
+                            className={badgeClassName}
+                            whileHover={{ scale: 1.2, rotate: 15 }}
                           >
-                            {index + 1}
+                            {badgeContent}
                           </motion.span>
-                          {item.image ? (
-                            <motion.img 
-                              src={item.image} 
-                              alt={item.name}
-                              className="w-16 h-16 rounded-xl object-cover shadow-md"
-                              whileHover={{ scale: 1.1 }}
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center shadow-sm">
-                              <Package className="w-8 h-8 text-muted-foreground" />
-                            </div>
-                          )}
                           <div className="flex-1">
-                            <p className="font-bold text-lg">{item.name}</p>
+                            <p className={`font-bold text-xl ${index === 0 ? 'text-yellow-700 dark:text-yellow-400' : ''}`}>{item.name}</p>
                             <p className="text-sm text-muted-foreground mt-1">
                               {item.category || '未分类'} · {item.quantity} 件
                             </p>
@@ -683,7 +703,7 @@ export function HomeView({
                           </div>
                           <div className="space-y-2">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">购买价格</p>
-                            <p className="font-semibold text-primary">{formatCurrency(item.totalCost, currency)}</p>
+                            <p className={`font-semibold ${index === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-primary'}`}>{formatCurrency(item.totalCost, currency)}</p>
                           </div>
                           <div className="space-y-2">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{item.calculationType === 'perUse' ? '单次成本' : '每日成本'}</p>

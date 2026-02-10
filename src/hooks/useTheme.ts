@@ -163,6 +163,28 @@ export function useTheme() {
     // 确保主色调文字颜色一致
     root.style.setProperty('--primary-foreground', resolvedTheme === 'dark' ? '0 0% 100%' : '0 0% 100%');
     
+    // 设置渐变色主题配色方案
+    // 基于当前主色调生成渐变色彩
+    const baseHue = parseInt(colorHsl.split(' ')[0]);
+    const baseSaturation = parseInt(colorHsl.split(' ')[1]);
+    const baseLightness = parseInt(colorHsl.split(' ')[2]);
+    
+    // 渐变起始色（稍暗）
+    const gradientStartLightness = resolvedTheme === 'dark' ? baseLightness - 10 : baseLightness - 5;
+    root.style.setProperty('--gradient-start', `${baseHue} ${baseSaturation}% ${gradientStartLightness}%`);
+    
+    // 渐变结束色（稍亮）
+    const gradientEndLightness = resolvedTheme === 'dark' ? baseLightness + 15 : baseLightness + 10;
+    root.style.setProperty('--gradient-end', `${baseHue} ${baseSaturation}% ${gradientEndLightness}%`);
+    
+    // 渐变辅助色1（相邻色调）
+    const secondaryHue = (baseHue + 30) % 360;
+    root.style.setProperty('--gradient-secondary', `${secondaryHue} ${baseSaturation}% ${baseLightness}%`);
+    
+    // 渐变辅助色2（对比色调）
+    const tertiaryHue = (baseHue + 180) % 360;
+    root.style.setProperty('--gradient-tertiary', `${tertiaryHue} ${baseSaturation}% ${baseLightness}%`);
+    
     // 设置深色/浅色模式
     if (resolvedTheme === 'dark') {
       root.classList.add('dark');

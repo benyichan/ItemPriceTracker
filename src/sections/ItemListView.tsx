@@ -6,7 +6,9 @@ import {
   SlidersHorizontal, 
   Grid3X3, 
   List, 
-  Package
+  Package,
+  Calendar,
+  X
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,6 +52,10 @@ export function ItemListView({
   const [sortType, setSortType] = useState<SortType>('dateAdded');
   const [viewType, setViewType] = useState<ViewType>('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [dateFilterMode, setDateFilterMode] = useState<'day' | 'month'>('day');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [showDateFilter, setShowDateFilter] = useState(false);
   useTheme();
 
   // 防抖搜索
@@ -91,6 +97,20 @@ export function ItemListView({
       result = result.filter(item => item.status === filterStatus);
     }
     
+    // 日期过滤
+    if (dateFilterMode === 'day' && selectedDate) {
+      result = result.filter(item => {
+        const itemDate = new Date(item.purchaseDate).toLocaleDateString();
+        const filterDate = new Date(selectedDate).toLocaleDateString();
+        return itemDate === filterDate;
+      });
+    } else if (dateFilterMode === 'month' && selectedMonth) {
+      result = result.filter(item => {
+        const itemMonth = item.purchaseDate.substring(0, 7); // YYYY-MM
+        return itemMonth === selectedMonth;
+      });
+    }
+    
     // 排序
     result.sort((a, b) => {
       switch (sortType) {
@@ -114,7 +134,7 @@ export function ItemListView({
     });
     
     return result;
-  }, [items, debouncedSearchQuery, filterStatus, sortType]);
+  }, [items, debouncedSearchQuery, filterStatus, sortType, dateFilterMode, selectedDate, selectedMonth]);
 
   const getStatusBadge = (item: Item) => {
     if (item.status === 'finished') {
@@ -225,7 +245,95 @@ export function ItemListView({
           >
             <SlidersHorizontal className="w-4 h-4" />
           </motion.button>
+          <motion.button
+            onClick={() => setShowDateFilter(!showDateFilter)}
+            className={`p-1.5 rounded-full transition-colors ${
+              showDateFilter || (selectedDate || selectedMonth)
+                ? 'bg-primary/10 text-primary'
+                : 'hover:bg-muted'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Calendar className="w-4 h-4" />
+          </motion.button>
         </div>
+
+        {/* 日期筛选器 */}
+        <AnimatePresence>
+          {showDateFilter && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t overflow-hidden"
+            >
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-sm font-medium">日期筛选</h3>
+                  <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+                    <motion.button
+                      onClick={() => setDateFilterMode('day')}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                        dateFilterMode === 'day' ? 'bg-background shadow-sm' : 'text-muted-foreground'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      按日
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setDateFilterMode('month')}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                        dateFilterMode === 'month' ? 'bg-background shadow-sm' : 'text-muted-foreground'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      按月
+                    </motion.button>
+                  </div>
+                </div>
+                
+                {dateFilterMode === 'day' ? (
+                  <div className="space-y-3">
+                    <label className="block text-xs font-medium text-muted-foreground">选择日期</label>
+                    <Input
+                      type="date"
+                      value={selectedDate || ''}
+                      onChange={(e) => setSelectedDate(e.target.value || null)}
+                      className="rounded-xl"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <label className="block text-xs font-medium text-muted-foreground">选择月份</label>
+                    <Input
+                      type="month"
+                      value={selectedMonth || ''}
+                      onChange={(e) => setSelectedMonth(e.target.value || null)}
+                      className="rounded-xl"
+                    />
+                  </div>
+                )}
+                
+                {(selectedDate || selectedMonth) && (
+                  <motion.button
+                    onClick={() => {
+                      setSelectedDate(null);
+                      setSelectedMonth(null);
+                    }}
+                    className="mt-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    whileHover={{ x: 2 }}
+                  >
+                    <X className="w-3 h-3" />
+                    清除筛选
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 排序选项 */}
         <AnimatePresence>
@@ -388,14 +496,19 @@ export function ItemListView({
             </AnimatePresence>
           </motion.div>
         ) : (
-          <div className="text-center py-12">
+          <motion.div 
+            className="text-center py-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
-              <Package className="w-10 h-10 text-muted-foreground/50" />
+              <Calendar className="w-10 h-10 text-muted-foreground/50" />
             </div>
             <p className="text-muted-foreground">
-              {searchQuery ? '没有找到匹配的物品' : '暂无物品'}
+              {(selectedDate || selectedMonth) ? '当前日期未采购任何物品' : (searchQuery ? '没有找到匹配的物品' : '暂无物品')}
             </p>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

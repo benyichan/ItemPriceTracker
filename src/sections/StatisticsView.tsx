@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Heatmap } from '@/components/Heatmap';
 import { useTheme } from '@/hooks/useTheme';
 import type { Item } from '@/types';
+import { formatCurrency } from '@/lib/helpers';
 
 interface StatisticsViewProps {
   items: Item[];
@@ -82,10 +83,8 @@ export function StatisticsView({
     return cost > top.cost ? { category, cost } : top;
   }, null as { category: string; cost: number } | null);
 
-  // 格式化数字，保留2位小数
-  const formatNumber = (num: number) => {
-    return num.toFixed(2);
-  };
+  // 货币符号（使用空字符串，因为formatCurrency已经处理了格式化）
+  const currency = '';
 
   // 格式化日期
   const formatDate = (dateString: string) => {
@@ -132,7 +131,7 @@ export function StatisticsView({
                   <DollarSign className="w-4 h-4" />
                   <span className="text-sm">总花费</span>
                 </div>
-                <p className="text-2xl font-bold text-primary">{formatNumber(statistics.totalCost)}</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(statistics.totalCost, currency)}</p>
               </CardContent>
             </Card>
 
@@ -155,7 +154,7 @@ export function StatisticsView({
                   <DollarSign className="w-4 h-4" />
                   <span className="text-sm">平均单价</span>
                 </div>
-                <p className="text-2xl font-bold text-primary">{formatNumber(statistics.averageUnitPrice)}</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(statistics.averageUnitPrice, currency)}</p>
               </CardContent>
             </Card>
 
@@ -189,7 +188,7 @@ export function StatisticsView({
                 </div>
                 <p className="text-lg font-bold">{oldestItem?.name || '无'}</p>
                 {oldestItem && (
-                  <p className="text-sm text-primary mt-1">购买价格: {formatNumber(oldestItem.totalCost)}</p>
+                  <p className="text-sm text-primary mt-1">购买价格: {formatCurrency(oldestItem.totalCost, currency)}</p>
                 )}
               </CardContent>
             </Card>
@@ -203,7 +202,7 @@ export function StatisticsView({
                 </div>
                 <p className="text-lg font-bold">{mostExpensiveItem?.name || '无'}</p>
                 {mostExpensiveItem && (
-                  <p className="text-sm text-primary mt-1">购买价格: {formatNumber(mostExpensiveItem.totalCost)}</p>
+                  <p className="text-sm text-primary mt-1">购买价格: {formatCurrency(mostExpensiveItem.totalCost, currency)}</p>
                 )}
               </CardContent>
             </Card>
@@ -219,7 +218,7 @@ export function StatisticsView({
                   <div className="space-y-2">
                     <p className="text-lg font-bold">{latestPurchaseItem.name}</p>
                     <p className="text-sm">购买日期: {formatDate(latestPurchaseItem.purchaseDate)}</p>
-                    <p className="text-sm text-primary">购买价格: {formatNumber(latestPurchaseItem.totalCost)}</p>
+                    <p className="text-sm text-primary">购买价格: {formatCurrency(latestPurchaseItem.totalCost, currency)}</p>
                   </div>
                 ) : (
                   <p className="text-lg font-bold">无</p>
@@ -236,7 +235,7 @@ export function StatisticsView({
                 </div>
                 <p className="text-lg font-bold break-words">{topCategory?.category || '无'}</p>
                 {topCategory && (
-                  <p className="text-sm text-primary mt-1">购买价格: {formatNumber(topCategory.cost)}</p>
+                  <p className="text-sm text-primary mt-1">购买价格: {formatCurrency(topCategory.cost, currency)}</p>
                 )}
               </CardContent>
             </Card>

@@ -97,7 +97,7 @@ export function formatNumber(amount: number): string {
   } else if (amount < 10000) {
     return amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   } else {
-    return (amount / 10000).toFixed(2) + '万';
+    return ((Math.round(amount * 100) / 100) / 10000).toFixed(2) + '万';
   }
 }
 

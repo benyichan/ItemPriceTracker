@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,7 @@ interface HeatmapData {
 export function Heatmap({ items }: HeatmapProps) {
   const { primaryColor, resolvedTheme } = useTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   // 生成最近30天的日期数组
   const generateLast30Days = (): string[] => {
@@ -48,6 +49,40 @@ export function Heatmap({ items }: HeatmapProps) {
     }
     
     return months;
+  };
+
+  // 生成特定月份的每日数据
+  const generateDaysInMonth = (month: string, items: Item[]): HeatmapData[] => {
+    const [year, monthNum] = month.split('-').map(Number);
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+    const days: HeatmapData[] = [];
+    const dayMap = new Map<string, number>();
+    
+    // 初始化所有日期的金额为0
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      dayMap.set(dateStr, 0);
+    }
+    
+    // 聚合物品数据
+    items.forEach(item => {
+      const purchaseDate = item.purchaseDate.split('T')[0];
+      if (purchaseDate.startsWith(month)) {
+        dayMap.set(purchaseDate, (dayMap.get(purchaseDate) || 0) + item.totalCost);
+      }
+    });
+    
+    // 转换为数组格式
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      days.push({
+        date: dateStr,
+        amount: dayMap.get(dateStr) || 0,
+        formattedDate: `${day}`
+      });
+    }
+    
+    return days;
   };
 
   // 聚合日数据
@@ -111,6 +146,12 @@ export function Heatmap({ items }: HeatmapProps) {
   // 获取当前视图数据
   const currentData = viewMode === 'daily' ? dailyData : monthlyData;
 
+  // 获取选中月份的每日数据
+  const selectedMonthDays = useMemo(() => {
+    if (!selectedMonth) return [];
+    return generateDaysInMonth(selectedMonth, items);
+  }, [selectedMonth, items]);
+
   // 计算金额范围
   const amountRange = useMemo(() => {
     const amounts = currentData.map(item => item.amount);
@@ -119,15 +160,38 @@ export function Heatmap({ items }: HeatmapProps) {
     return { min, max };
   }, [currentData]);
 
+  // 计算选中月份每日数据的金额范围
+  const selectedMonthAmountRange = useMemo(() => {
+    if (!selectedMonthDays.length) return { min: 0, max: 0 };
+    const amounts = selectedMonthDays.map(item => item.amount);
+    const min = Math.min(...amounts);
+    const max = Math.max(...amounts);
+    return { min, max };
+  }, [selectedMonthDays]);
+
+  // 辅助函数：将十六进制颜色转换为RGB
+  const hexToRgb = useCallback((hex: string): string => {
+    // 移除#号
+    hex = hex.replace('#', '');
+    
+    // 解析RGB值
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return `${r}, ${g}, ${b}`;
+  }, []);
+
   // 颜色映射函数
-  const getColorIntensity = (amount: number): number => {
-    if (amountRange.max === amountRange.min) return 0;
-    return (amount - amountRange.min) / (amountRange.max - amountRange.min);
-  };
+  const getColorIntensity = useCallback((amount: number, range: { min: number; max: number }): number => {
+    if (range.max === range.min) return 0;
+    return (amount - range.min) / (range.max - range.min);
+  }, []);
 
   // 获取单元格颜色
-  const getCellColor = (amount: number): string => {
-    const intensity = getColorIntensity(amount);
+  const getCellColor = useCallback((amount: number, range?: { min: number; max: number }): string => {
+    const targetRange = range || amountRange;
+    const intensity = getColorIntensity(amount, targetRange);
     const alpha = 0.1 + (intensity * 0.9); // 从0.1到1.0的透明度范围
     
     // 根据主题模式调整颜色
@@ -138,19 +202,15 @@ export function Heatmap({ items }: HeatmapProps) {
       // 浅色模式：使用标准主色调
       return `rgba(${hexToRgb(primaryColor)}, ${alpha})`;
     }
-  };
+  }, [amountRange, primaryColor, resolvedTheme, getColorIntensity, hexToRgb]);
 
-  // 辅助函数：将十六进制颜色转换为RGB
-  const hexToRgb = (hex: string): string => {
-    // 移除#号
-    hex = hex.replace('#', '');
-    
-    // 解析RGB值
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    
-    return `${r}, ${g}, ${b}`;
+  // 格式化金额显示
+  const formatAmount = (amount: number): string => {
+    if (!amount) return '';
+    if (amount >= 10000) {
+      return `${(amount / 10000).toFixed(2)}万`;
+    }
+    return amount.toFixed(0);
   };
 
   // 生成颜色图例
@@ -169,7 +229,7 @@ export function Heatmap({ items }: HeatmapProps) {
     }
     
     return legend;
-  }, [amountRange, primaryColor, resolvedTheme]);
+  }, [amountRange, getCellColor]);
 
   return (
     <Card className="overflow-hidden border border-border">
@@ -224,6 +284,12 @@ export function Heatmap({ items }: HeatmapProps) {
                   style={{ backgroundColor: getCellColor(item.amount) }}
                   whileHover={{ scale: 1.05 }}
                   title={`${item.formattedDate}: ¥${item.amount.toFixed(2)}`}
+                  onClick={() => {
+                    if (viewMode === 'monthly') {
+                      // 切换选中的月份：如果点击的是当前选中的月份，则取消选中；否则选中新月份
+                      setSelectedMonth(selectedMonth === item.date ? null : item.date);
+                    }
+                  }}
                 >
                   {/* 不显示具体金额，只通过颜色表示 */}
                 </motion.div>
@@ -233,6 +299,48 @@ export function Heatmap({ items }: HeatmapProps) {
               </motion.div>
             ))}
           </motion.div>
+        </AnimatePresence>
+
+        {/* 选中月份的每日热力图 */}
+        <AnimatePresence>
+          {selectedMonth && viewMode === 'monthly' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-6 overflow-hidden"
+            >
+              <h4 className="text-sm font-medium mb-3">
+                {monthlyData.find(m => m.date === selectedMonth)?.formattedDate} 每日消费
+              </h4>
+              <div className="grid grid-cols-4 gap-2">
+                {selectedMonthDays.map((item, index) => (
+                  <motion.div
+                    key={item.date}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: index * 0.01 }}
+                    className="relative"
+                  >
+                    <motion.div
+                      className="aspect-square rounded-lg flex flex-col items-center justify-center cursor-pointer"
+                      style={{ backgroundColor: getCellColor(item.amount, selectedMonthAmountRange) }}
+                      whileHover={{ scale: 1.05 }}
+                      title={`${item.formattedDate}日: ¥${item.amount.toFixed(2)}`}
+                    >
+                      <div className="text-xs font-medium">
+                        {item.formattedDate}
+                      </div>
+                      <div className="text-xs mt-1">
+                        {formatAmount(item.amount)}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* 颜色图例 */}
