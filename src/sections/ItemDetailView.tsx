@@ -28,7 +28,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { Item } from '@/types';
 import { formatCurrency, calculateUnitPrice, calculateEndDate, getRemainingDays } from '@/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
 
 interface ItemDetailViewProps {
   item: Item;
@@ -70,7 +69,6 @@ export function ItemDetailView({
 }: ItemDetailViewProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showFinishDialog, setShowFinishDialog] = useState(false);
-  useTheme();
 
   // 计算单价 - 购买数量不参与
   const unitPrice = calculateUnitPrice(
@@ -182,7 +180,7 @@ export function ItemDetailView({
           <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
             成本信息
           </h2>
-          <Card className="overflow-hidden border-primary/20">
+          <Card className="overflow-hidden border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -230,7 +228,7 @@ export function ItemDetailView({
                 </div>
               )}
               
-              <div className="border-t border-primary/20 pt-3 mt-3">
+              <div className="border-t border-primary/20 pt-3 mt-3 bg-gradient-to-r from-primary/5 to-transparent rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">
                     {item.calculationType === 'perUse' ? '单次单价' : '每日单价'}
@@ -252,7 +250,7 @@ export function ItemDetailView({
           <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
             时间信息
           </h2>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -265,7 +263,7 @@ export function ItemDetailView({
               </div>
               
               {endDate && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent rounded-lg p-3">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="w-4 h-4" />
                     <span>预计结束日期</span>
@@ -295,8 +293,8 @@ export function ItemDetailView({
             <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
               备注
             </h2>
-            <Card className="overflow-hidden">
-              <CardContent className="p-4">
+            <Card className="overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
+              <CardContent className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg">
                 <div className="flex items-start gap-2">
                   <FileText className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <p className="text-sm">{item.notes}</p>
@@ -312,8 +310,8 @@ export function ItemDetailView({
             <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
               使用记录
             </h2>
-            <Card className="overflow-hidden">
-              <CardContent className="p-4 space-y-2">
+            <Card className="overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
+              <CardContent className="p-4 space-y-2 bg-gradient-to-r from-primary/5 to-transparent rounded-lg">
                 {item.usageRecords.map((record) => (
                   <div
                     key={record.id}
@@ -346,7 +344,7 @@ export function ItemDetailView({
           {item.status !== 'finished' && (
             <Button
               variant="default"
-              className="flex-1 rounded-xl"
+              className="flex-1 rounded-xl gradient-tech text-white"
               onClick={() => setShowFinishDialog(true)}
             >
               <Check className="w-4 h-4 mr-2" />

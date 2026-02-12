@@ -1,6 +1,7 @@
 import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
 import type { Item, Settings, Reminder } from '@/types';
+import { BackupLocationManager, BackupFileManager } from './backupManager';
 
 interface ItemManagerDB extends DBSchema {
   items: {
@@ -196,30 +197,14 @@ export async function clearAllData(): Promise<void> {
 export async function createAutoBackup(): Promise<string | null> {
   try {
     const data = await exportData();
-    const backupContent = JSON.stringify(data, null, 2);
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `item-manager-backup-${timestamp}.json`;
     
-    // 检查是否支持localStorage
-    if (typeof localStorage !== 'undefined') {
-      // 存储备份信息
-      const backups = JSON.parse(localStorage.getItem('item-manager-backups') || '[]');
-      
-      // 限制备份数量为10个
-      const limitedBackups = backups.slice(-9);
-      limitedBackups.push({
-        id: Date.now().toString(),
-        filename,
-        date: new Date().toISOString(),
-        size: backupContent.length,
-        content: backupContent
-      });
-      
-      localStorage.setItem('item-manager-backups', JSON.stringify(limitedBackups));
-      return filename;
-    }
+    // 确保备份目录存在
+    const { path: backupDir, directory } = await BackupLocationManager.ensureBackupDirectory();
     
-    return null;
+    // 创建备份文件
+    const backupFileInfo = await BackupFileManager.createBackupFile(data, backupDir, directory);
+    
+    return backupFileInfo.filename;
   } catch (error) {
     console.error('自动备份失败:', error);
     return null;
@@ -228,32 +213,42 @@ export async function createAutoBackup(): Promise<string | null> {
 
 // 获取备份列表
 export async function getBackupList(): Promise<Array<{ id: string; filename: string; date: string; size: number }>> {
-  if (typeof localStorage !== 'undefined') {
-    const backups = JSON.parse(localStorage.getItem('item-manager-backups') || '[]');
-    return backups.map((backup: any) => ({
-      id: backup.id,
-      filename: backup.filename,
-      date: backup.date,
-      size: backup.size
-    }));
+  try {
+    // 确保备份目录存在
+    const { path: backupDir } = await BackupLocationManager.ensureBackupDirectory();
+    
+    // 列出备份文件
+    const backupFiles = await BackupFileManager.listBackupFiles(backupDir);
+    
+    return backupFiles;
+  } catch (error) {
+    console.error('获取备份列表失败:', error);
+    return [];
   }
-  return [];
 }
 
 // 从备份恢复
 export async function restoreFromBackup(backupId: string): Promise<boolean> {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const backups = JSON.parse(localStorage.getItem('item-manager-backups') || '[]');
-      const backup = backups.find((b: any) => b.id === backupId);
-      
-      if (backup) {
-        const data = JSON.parse(backup.content);
-        await importData(data);
-        return true;
-      }
+    // 确保备份目录存在
+    const { path: backupDir } = await BackupLocationManager.ensureBackupDirectory();
+    
+    // 构建备份文件路径
+    const filePath = `${backupDir}/${backupId}`;
+    
+    // 检查文件是否存在
+    const exists = await BackupFileManager.exists(filePath);
+    if (!exists) {
+      return false;
     }
-    return false;
+    
+    // 读取备份文件
+    const data = await BackupFileManager.readBackupFile(filePath);
+    
+    // 导入数据
+    await importData(data);
+    
+    return true;
   } catch (error) {
     console.error('从备份恢复失败:', error);
     return false;
@@ -263,13 +258,16 @@ export async function restoreFromBackup(backupId: string): Promise<boolean> {
 // 删除备份
 export async function deleteBackup(backupId: string): Promise<boolean> {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const backups = JSON.parse(localStorage.getItem('item-manager-backups') || '[]');
-      const filteredBackups = backups.filter((b: any) => b.id !== backupId);
-      localStorage.setItem('item-manager-backups', JSON.stringify(filteredBackups));
-      return true;
-    }
-    return false;
+    // 确保备份目录存在
+    const { path: backupDir } = await BackupLocationManager.ensureBackupDirectory();
+    
+    // 构建备份文件路径
+    const filePath = `${backupDir}/${backupId}`;
+    
+    // 删除备份文件
+    await BackupFileManager.deleteBackupFile(filePath);
+    
+    return true;
   } catch (error) {
     console.error('删除备份失败:', error);
     return false;

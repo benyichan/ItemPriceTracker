@@ -4,7 +4,6 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heatmap } from '@/components/Heatmap';
-import { useTheme } from '@/hooks/useTheme';
 import type { Item } from '@/types';
 import { formatCurrency } from '@/lib/helpers';
 
@@ -43,7 +42,6 @@ export function StatisticsView({
   statistics,
   onBack,
 }: StatisticsViewProps) {
-  useTheme();
 
   // 计算新增统计维度
   // 1. 使用年限最长的物品

@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Item, FilterStatus, SortType, ViewType } from '@/types';
 import { formatCurrency, calculateUnitPrice, calculateEndDate, getRemainingDays } from '@/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
 
 interface ItemListViewProps {
   items: Item[];
@@ -56,7 +55,6 @@ export function ItemListView({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [showDateFilter, setShowDateFilter] = useState(false);
-  useTheme();
 
   // 防抖搜索
   useEffect(() => {
@@ -225,7 +223,7 @@ export function ItemListView({
               onClick={() => setFilterStatus(status)}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap font-medium transition-all ${
                 filterStatus === status
-                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                  ? 'gradient-tech text-white shadow-md shadow-primary/25'
                   : 'bg-muted hover:bg-muted/80'
               }`}
               whileHover={{ scale: 1.05 }}
@@ -399,7 +397,7 @@ export function ItemListView({
                       variants={itemVariants}
                     >
                       <Card
-                        className="cursor-pointer hover:shadow-lg hover:shadow-primary/5 transition-all overflow-hidden border-border hover:border-primary/30"
+                        className="cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all overflow-hidden border-border hover:border-primary/30 hover:from-primary/5 hover:to-transparent hover:bg-gradient-to-r"
                         onClick={() => onViewItem(item)}
                       >
                         {item.image ? (
@@ -447,7 +445,7 @@ export function ItemListView({
                     variants={itemVariants}
                   >
                     <Card
-                      className="cursor-pointer hover:shadow-lg hover:shadow-primary/5 transition-all border-border hover:border-primary/30"
+                      className="cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all border-border hover:border-primary/30 hover:from-primary/5 hover:to-transparent hover:bg-gradient-to-r"
                       onClick={() => onViewItem(item)}
                     >
                       <CardContent className="p-3 flex items-center gap-3">

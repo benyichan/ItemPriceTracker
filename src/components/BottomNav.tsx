@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Home, Package, BarChart3, Settings } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
 
 interface BottomNavProps {
   currentView: string;
@@ -14,13 +13,13 @@ const navItems = [
   { id: 'settings', label: '设置', icon: Settings },
 ];
 
+
+
 export function BottomNav({ currentView, onViewChange }: BottomNavProps) {
-  useTheme();
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t safe-area-pb">
       <nav className="flex items-center justify-around px-4 py-2">
         {navItems.map((item) => {
-          const Icon = item.icon;
           const isActive = currentView === item.id;
           
           return (
@@ -57,16 +56,11 @@ export function BottomNav({ currentView, onViewChange }: BottomNavProps) {
                 />
               )}
               <motion.div
-                initial={{ scale: 1 }}
-                animate={{ scale: isActive ? 1.2 : 1 }}
-                transition={{
-                  type: 'spring',
-                  bounce: 0.4,
-                  duration: 0.5
-                }}
+                initial={{ opacity: 0.7, scale: 0.9 }}
+                animate={{ opacity: isActive ? 1 : 0.7, scale: 1 }}
                 className="relative z-10"
               >
-                <Icon className={`w-6 h-6 ${isActive ? 'text-primary' : ''}`} />
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
               </motion.div>
               <motion.span
                 initial={{ opacity: 0.7 }}

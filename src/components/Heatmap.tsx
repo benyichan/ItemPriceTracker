@@ -22,6 +22,12 @@ export function Heatmap({ items }: HeatmapProps) {
   const { primaryColor, resolvedTheme } = useTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [amountTooltip, setAmountTooltip] = useState<{
+    visible: boolean;
+    amount: number;
+    x: number;
+    y: number;
+  }>({ visible: false, amount: 0, x: 0, y: 0 });
 
   // 生成最近30天的日期数组
   const generateLast30Days = (): string[] => {
@@ -213,6 +219,16 @@ export function Heatmap({ items }: HeatmapProps) {
     return amount.toFixed(0);
   };
 
+  // 格式化金额显示（带千分位分隔符）
+  const formatAmountWithSeparator = (amount: number): string => {
+    if (amount >= 10000) {
+      return `${(amount / 10000).toFixed(2)}万`;
+    } else if (amount >= 1000) {
+      return amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return amount.toFixed(2);
+  };
+
   // 生成颜色图例
   const colorLegend = useMemo(() => {
     const steps = 5;
@@ -231,9 +247,28 @@ export function Heatmap({ items }: HeatmapProps) {
     return legend;
   }, [amountRange, getCellColor]);
 
+  // 处理热力图单元格点击事件
+  const handleCellClick = (amount: number, event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + window.scrollX + rect.width / 2;
+    const y = rect.top + window.scrollY - 40;
+    
+    setAmountTooltip({
+      visible: true,
+      amount,
+      x,
+      y
+    });
+    
+    // 5秒后自动隐藏
+    setTimeout(() => {
+      setAmountTooltip(prev => ({ ...prev, visible: false }));
+    }, 5000);
+  };
+
   return (
-    <Card className="overflow-hidden border border-border">
-      <CardContent className="p-4">
+    <Card className="overflow-hidden border border-border relative">
+      <CardContent className="p-4 relative">
         {/* 标题和模式切换 */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -284,10 +319,14 @@ export function Heatmap({ items }: HeatmapProps) {
                   style={{ backgroundColor: getCellColor(item.amount) }}
                   whileHover={{ scale: 1.05 }}
                   title={`${item.formattedDate}: ¥${item.amount.toFixed(2)}`}
-                  onClick={() => {
+                  onClick={(event) => {
+                    handleCellClick(item.amount, event);
+                    // 延迟切换选中的月份，确保金额提示信息能够正确显示
                     if (viewMode === 'monthly') {
-                      // 切换选中的月份：如果点击的是当前选中的月份，则取消选中；否则选中新月份
-                      setSelectedMonth(selectedMonth === item.date ? null : item.date);
+                      setTimeout(() => {
+                        // 切换选中的月份：如果点击的是当前选中的月份，则取消选中；否则选中新月份
+                        setSelectedMonth(selectedMonth === item.date ? null : item.date);
+                      }, 500);
                     }
                   }}
                 >
@@ -328,6 +367,7 @@ export function Heatmap({ items }: HeatmapProps) {
                       style={{ backgroundColor: getCellColor(item.amount, selectedMonthAmountRange) }}
                       whileHover={{ scale: 1.05 }}
                       title={`${item.formattedDate}日: ¥${item.amount.toFixed(2)}`}
+                      onClick={(event) => handleCellClick(item.amount, event)}
                     >
                       <div className="text-xs font-medium">
                         {item.formattedDate}
@@ -360,6 +400,31 @@ export function Heatmap({ items }: HeatmapProps) {
             ))}
           </div>
         </div>
+
+        {/* 金额提示信息 */}
+        <AnimatePresence>
+          {amountTooltip.visible && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              className="absolute z-50 bg-card border border-border rounded-lg px-3 py-2 shadow-lg"
+              style={{
+                left: amountTooltip.x,
+                top: amountTooltip.y,
+                transform: 'translateX(-50%)',
+              }}
+            >
+              <div className="text-sm font-medium text-primary">
+                ¥{formatAmountWithSeparator(amountTooltip.amount)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                采购金额合计
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
     </Card>
   );

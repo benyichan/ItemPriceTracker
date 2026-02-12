@@ -30,11 +30,46 @@
     --ring: 214 65% 45%;
     --radius: 1rem;
     
+    /* 功能模块颜色编码 */
+    --success: 158 76% 37%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 90% 52%;
+    --warning-foreground: 0 0% 100%;
+    --info: 189 94% 43%;
+    --info-foreground: 0 0% 100%;
+    
     /* 现代科技感渐变 */
     --gradient-start: 214 65% 45%;
     --gradient-end: 214 75% 60%;
     --gradient-secondary: 195 60% 45%;
     --gradient-tertiary: 260 60% 60%;
+    --gradient-complementary: 120 60% 45%;
+    --gradient-dark: 214 65% 35%;
+    --gradient-light: 214 65% 70%;
+    
+    /* 新增品牌色 */
+    --brand: 260 60% 55%;
+    --brand-foreground: 0 0% 100%;
+    --brand-100: 260 20% 95%;
+    --brand-200: 260 25% 90%;
+    --brand-300: 260 30% 85%;
+    --brand-400: 260 40% 75%;
+    --brand-500: 260 60% 55%;
+    --brand-600: 260 60% 50%;
+    --brand-700: 260 60% 45%;
+    --brand-800: 260 60% 40%;
+    --brand-900: 260 60% 35%;
+    
+    /* 品牌色渐变 */
+    --brand-start: 260 60% 55%;
+    --brand-end: 260 70% 65%;
+    --brand-secondary: 275 60% 55%;
+    --brand-tertiary: 245 60% 55%;
+    --gradient-direction: 135deg;
+    --gradient-direction-45: 45deg;
+    --gradient-direction-90: 90deg;
+    --gradient-direction-180: 180deg;
+    --gradient-direction-270: 270deg;
     
     /* 现代阴影系统 */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
@@ -95,11 +130,46 @@
     --input: 220 20% 18%;
     --ring: 214 70% 60%;
     
+    /* 功能模块颜色编码 - 深色 */
+    --success: 158 70% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 85% 60%;
+    --warning-foreground: 0 0% 100%;
+    --info: 189 85% 55%;
+    --info-foreground: 0 0% 100%;
+    
     /* 现代科技感渐变 - 深色 */
     --gradient-start: 214 70% 60%;
     --gradient-end: 214 85% 70%;
     --gradient-secondary: 195 65% 50%;
     --gradient-tertiary: 260 65% 65%;
+    --gradient-complementary: 120 65% 50%;
+    --gradient-dark: 214 70% 45%;
+    --gradient-light: 214 70% 80%;
+    
+    /* 新增品牌色 - 深色 */
+    --brand: 260 65% 65%;
+    --brand-foreground: 0 0% 100%;
+    --brand-100: 260 20% 15%;
+    --brand-200: 260 25% 20%;
+    --brand-300: 260 30% 25%;
+    --brand-400: 260 40% 35%;
+    --brand-500: 260 65% 65%;
+    --brand-600: 260 65% 70%;
+    --brand-700: 260 65% 75%;
+    --brand-800: 260 65% 80%;
+    --brand-900: 260 65% 85%;
+    
+    /* 品牌色渐变 - 深色 */
+    --brand-start: 260 65% 65%;
+    --brand-end: 260 75% 75%;
+    --brand-secondary: 275 65% 60%;
+    --brand-tertiary: 245 65% 60%;
+    --gradient-direction: 135deg;
+    --gradient-direction-45: 45deg;
+    --gradient-direction-90: 90deg;
+    --gradient-direction-180: 180deg;
+    --gradient-direction-270: 270deg;
     
     /* 现代阴影系统 - 深色 */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
@@ -214,19 +284,85 @@
   
   /* 现代科技感渐变背景 */
   .gradient-tech {
-    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
   }
   
   .gradient-tech-secondary {
-    background: linear-gradient(135deg, hsl(var(--gradient-secondary)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-secondary)) 0%, hsl(var(--gradient-end)) 100%);
   }
   
   .gradient-tech-tertiary {
-    background: linear-gradient(135deg, hsl(var(--gradient-tertiary)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-tertiary)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-tech-complementary {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-complementary)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-tech-dark {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-dark)) 0%, hsl(var(--gradient-start)) 100%);
+  }
+  
+  .gradient-tech-light {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-light)) 100%);
+  }
+  
+  /* 品牌色渐变 */
+  .gradient-brand {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--brand-start)) 0%, hsl(var(--brand-end)) 100%);
+  }
+  
+  .gradient-brand-secondary {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--brand-secondary)) 0%, hsl(var(--brand-end)) 100%);
+  }
+  
+  .gradient-brand-tertiary {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--brand-tertiary)) 0%, hsl(var(--brand-end)) 100%);
+  }
+  
+  .gradient-brand-dark {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--brand-700)) 0%, hsl(var(--brand-start)) 100%);
+  }
+  
+  .gradient-brand-light {
+    background: linear-gradient(var(--gradient-direction), hsl(var(--brand-start)) 0%, hsl(var(--brand-300)) 100%);
+  }
+  
+  /* 品牌色文字渐变 */
+  .gradient-text-brand {
+    background: linear-gradient(135deg, hsl(var(--brand)) 0%, hsl(var(--brand-end)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* 不同方向的渐变 */
+  .gradient-tech-45 {
+    background: linear-gradient(var(--gradient-direction-45), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-tech-90 {
+    background: linear-gradient(var(--gradient-direction-90), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-tech-180 {
+    background: linear-gradient(var(--gradient-direction-180), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-tech-270 {
+    background: linear-gradient(var(--gradient-direction-270), hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
   }
   
   .gradient-radial {
     background: radial-gradient(circle, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-radial-dark {
+    background: radial-gradient(circle, hsl(var(--gradient-dark)) 0%, hsl(var(--gradient-start)) 100%);
+  }
+  
+  .gradient-radial-light {
+    background: radial-gradient(circle, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-light)) 100%);
   }
   
   /* 发光效果 */

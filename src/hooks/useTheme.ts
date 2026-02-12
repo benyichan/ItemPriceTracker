@@ -7,7 +7,13 @@ export type ThemeColor =
   | '#059669' // 翡翠绿
   | '#EA580C' // 能量橙
   | '#DB2777' // 霓虹粉
-  | '#0891B2'; // 电光青
+  | '#0891B2' // 电光青
+  | '#F59E0B' // 阳光黄
+  | '#1E3A8A' // 深蓝灰
+  | '#10B981' // 薄荷绿
+  | '#F97316' // 珊瑚粉
+  | '#6366F1' // 靛蓝色
+  | '#FBBF24'; // 琥珀色
 
 interface ThemeState {
   theme: 'light' | 'dark' | 'system';
@@ -38,6 +44,30 @@ const THEME_COLORS: Record<ThemeColor, { light: string; dark: string }> = {
   '#0891B2': { 
     light: '189 94% 43%', 
     dark: '189 85% 55%' 
+  },
+  '#F59E0B': { 
+    light: '43 90% 52%', 
+    dark: '43 85% 60%' 
+  },
+  '#1E3A8A': { 
+    light: '220 63% 20%', 
+    dark: '220 70% 35%' 
+  },
+  '#10B981': { 
+    light: '160 83% 40%', 
+    dark: '160 75% 50%' 
+  },
+  '#F97316': { 
+    light: '21 92% 54%', 
+    dark: '21 85% 65%' 
+  },
+  '#6366F1': { 
+    light: '239 69% 66%', 
+    dark: '239 75% 70%' 
+  },
+  '#FBBF24': { 
+    light: '43 96% 59%', 
+    dark: '43 90% 65%' 
   },
 };
 
@@ -184,6 +214,27 @@ export function useTheme() {
     // 渐变辅助色2（对比色调）
     const tertiaryHue = (baseHue + 180) % 360;
     root.style.setProperty('--gradient-tertiary', `${tertiaryHue} ${baseSaturation}% ${baseLightness}%`);
+    
+    // 渐变辅助色3（互补色调）
+    const complementaryHue = (baseHue + 120) % 360;
+    root.style.setProperty('--gradient-complementary', `${complementaryHue} ${baseSaturation}% ${baseLightness}%`);
+    
+    // 渐变暗色（用于强调）
+    const gradientDarkLightness = resolvedTheme === 'dark' ? baseLightness - 15 : baseLightness - 10;
+    root.style.setProperty('--gradient-dark', `${baseHue} ${baseSaturation}% ${gradientDarkLightness}%`);
+    
+    // 渐变亮色（用于高光）
+    const gradientLightLightness = resolvedTheme === 'dark' ? baseLightness + 20 : baseLightness + 15;
+    root.style.setProperty('--gradient-light', `${baseHue} ${baseSaturation}% ${gradientLightLightness}%`);
+    
+    // 设置渐变方向（默认135度）
+    root.style.setProperty('--gradient-direction', '135deg');
+    
+    // 设置渐变角度变体
+    root.style.setProperty('--gradient-direction-45', '45deg');
+    root.style.setProperty('--gradient-direction-90', '90deg');
+    root.style.setProperty('--gradient-direction-180', '180deg');
+    root.style.setProperty('--gradient-direction-270', '270deg');
     
     // 设置深色/浅色模式
     if (resolvedTheme === 'dark') {

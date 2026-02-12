@@ -9,7 +9,9 @@ import {
   AlertTriangle,
   Calendar,
   FileText,
-  Database
+  Database,
+  Folder,
+  Save
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,6 +41,7 @@ import {
   exportData,
   importData
 } from '@/lib/db';
+import { BackupLocationManager } from '@/lib/backupManager';
 import { downloadFile, readFile, formatDateCN } from '@/lib/helpers';
 import { toast } from 'sonner';
 
@@ -60,6 +63,8 @@ export function BackupManager({ onDataChanged }: BackupManagerProps) {
   const [selectedBackupId, setSelectedBackupId] = useState<string>('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showManualBackupDialog, setShowManualBackupDialog] = useState(false);
+  const [backupPath, setBackupPath] = useState<string | null>(null);
+  const [showPathDialog, setShowPathDialog] = useState(false);
 
   // 加载备份列表
   const loadBackupList = async () => {
@@ -75,8 +80,56 @@ export function BackupManager({ onDataChanged }: BackupManagerProps) {
     }
   };
 
+  // 加载备份路径
+  const loadBackupPath = async () => {
+    try {
+      const path = await BackupLocationManager.getBackupLocation();
+      setBackupPath(path);
+    } catch (error) {
+      console.error('加载备份路径失败:', error);
+    }
+  };
+
+  // 设置备份路径（预留接口，暂时注释掉以避免未使用警告）
+  // const _setBackupLocation = async (path: string) => {
+  //   try {
+  //     setLoading(true);
+  //     await BackupLocationManager.saveBackupLocation(path);
+  //     setBackupPath(path);
+  //     toast.success('备份路径设置成功');
+  //     setShowPathDialog(false);
+  //     // 重新加载备份列表
+  //     await loadBackupList();
+  //   } catch (error) {
+  //     console.error('设置备份路径失败:', error);
+  //     toast.error('设置备份路径失败');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // 使用默认备份路径
+  const useDefaultBackupPath = async () => {
+    try {
+      setLoading(true);
+      const defaultPath = await BackupLocationManager.getDefaultBackupPath();
+      await BackupLocationManager.saveBackupLocation(defaultPath);
+      setBackupPath(defaultPath);
+      toast.success('已使用默认备份路径');
+      setShowPathDialog(false);
+      // 重新加载备份列表
+      await loadBackupList();
+    } catch (error) {
+      console.error('使用默认备份路径失败:', error);
+      toast.error('使用默认备份路径失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadBackupList();
+    loadBackupPath();
   }, []);
 
   // 创建手动备份
@@ -224,7 +277,7 @@ export function BackupManager({ onDataChanged }: BackupManagerProps) {
             <h3 className="text-xl font-semibold">备份管理</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <motion.button
               onClick={handleManualBackup}
               disabled={loading}
@@ -266,6 +319,31 @@ export function BackupManager({ onDataChanged }: BackupManagerProps) {
               <span className="text-sm font-medium">上传备份</span>
               <span className="text-xs text-muted-foreground">自动备份</span>
             </motion.button>
+
+            <motion.button
+              onClick={() => setShowPathDialog(true)}
+              disabled={loading}
+              className="p-4 border-2 border-dashed border-border rounded-xl flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <Folder className="w-5 h-5 text-amber-600" />
+              </div>
+              <span className="text-sm font-medium">备份路径</span>
+              <span className="text-xs text-muted-foreground">设置路径</span>
+            </motion.button>
+          </div>
+
+          {/* 备份路径信息 */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3 mb-6">
+            <Save className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-800">当前备份路径</p>
+              <p className="text-xs text-blue-600 mt-1 font-mono break-all">
+                {backupPath || '未设置，将使用默认路径'}
+              </p>
+            </div>
           </div>
 
           {/* 备份提示 */}
@@ -452,6 +530,66 @@ export function BackupManager({ onDataChanged }: BackupManagerProps) {
           </DialogHeader>
           <div className="flex items-center justify-center py-8">
             <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 备份路径设置对话框 */}
+      <Dialog open={showPathDialog} onOpenChange={setShowPathDialog}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>设置备份路径</DialogTitle>
+            <DialogDescription>
+              设置备份文件的存储位置，建议选择一个用户可见且便于管理的目录。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm font-medium mb-2">默认备份路径</p>
+              <p className="text-xs text-muted-foreground font-mono break-all">
+                {backupPath || '未设置'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Button
+                onClick={useDefaultBackupPath}
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 rounded-xl"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    设置中...
+                  </div>
+                ) : (
+                  <>
+                    <Folder className="w-4 h-4 mr-2" />
+                    使用默认备份路径
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  // 这里可以添加自定义路径设置逻辑
+                  // 由于是Capacitor应用，实际的文件夹选择需要使用原生API
+                  toast.info('在实际应用中，这里会打开文件夹选择器');
+                  // 暂时使用默认路径
+                  useDefaultBackupPath();
+                }}
+                disabled={loading}
+                variant="outline"
+                className="w-full rounded-xl"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                选择自定义路径
+              </Button>
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-yellow-600 ml-2">
+                注意：在Android设备上，备份路径需要符合文件系统权限要求，建议使用应用默认路径。
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

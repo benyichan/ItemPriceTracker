@@ -14,6 +14,7 @@ import { useStatistics } from '@/hooks/useStatistics';
 import { useTheme, type ThemeColor } from '@/hooks/useTheme';
 import type { Item } from '@/types';
 import { initDB } from '@/lib/db';
+import { checkStoragePermission, getPermissionDeniedMessage } from '@/lib/backupManager';
 import { calculateUnitPrice } from '@/lib/utils';
 import './App.css';
 
@@ -30,9 +31,35 @@ function App() {
   const { statistics, monthlyComparison } = useStatistics(items);
   const { theme, primaryColor, resolvedTheme, setTheme, setPrimaryColor } = useTheme();
 
-  // 初始化数据库
+  // 初始化数据库和检查存储权限
   useEffect(() => {
-    initDB().then(() => setIsReady(true));
+    const initializeApp = async () => {
+      try {
+        // 初始化数据库
+        await initDB();
+        
+        // 检查存储权限
+        const hasPermission = await checkStoragePermission();
+        if (!hasPermission) {
+          const permissionMessage = getPermissionDeniedMessage();
+          toast.warning(permissionMessage, {
+            duration: 10000,
+            action: {
+              label: '知道了',
+              onClick: () => {}
+            }
+          });
+        }
+        
+        setIsReady(true);
+      } catch (error) {
+        console.error('初始化应用失败:', error);
+        toast.error('初始化失败，请重试');
+        setIsReady(true);
+      }
+    };
+    
+    initializeApp();
   }, []);
 
   // 处理添加物品

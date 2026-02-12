@@ -39,13 +39,19 @@ interface SettingsViewProps {
   onColorChange: (color: ThemeColor) => void;
 }
 
-const THEME_COLORS: { name: string; value: ThemeColor; gradient: string }[] = [
-  { name: '科技蓝', value: '#2A5CAA', gradient: 'from-blue-500 to-blue-600' },
-  { name: '极光紫', value: '#7C3AED', gradient: 'from-violet-500 to-violet-600' },
-  { name: '翡翠绿', value: '#059669', gradient: 'from-emerald-500 to-emerald-600' },
-  { name: '能量橙', value: '#EA580C', gradient: 'from-orange-500 to-orange-600' },
-  { name: '霓虹粉', value: '#DB2777', gradient: 'from-pink-500 to-pink-600' },
-  { name: '电光青', value: '#0891B2', gradient: 'from-cyan-500 to-cyan-600' },
+const THEME_COLORS: { name: string; value: ThemeColor }[] = [
+  { name: '科技蓝', value: '#2A5CAA' },
+  { name: '极光紫', value: '#7C3AED' },
+  { name: '翡翠绿', value: '#059669' },
+  { name: '能量橙', value: '#EA580C' },
+  { name: '霓虹粉', value: '#DB2777' },
+  { name: '电光青', value: '#0891B2' },
+  { name: '阳光黄', value: '#F59E0B' },
+  { name: '深蓝灰', value: '#1E3A8A' },
+  { name: '薄荷绿', value: '#10B981' },
+  { name: '珊瑚粉', value: '#F97316' },
+  { name: '靛蓝色', value: '#6366F1' },
+  { name: '琥珀色', value: '#FBBF24' },
 ];
 
 const containerVariants: Variants = {
@@ -66,10 +72,12 @@ const itemVariants: Variants = {
 };
 
 export function SettingsView({
+  settings,
   theme,
   primaryColor,
   resolvedTheme,
   onBack,
+  onUpdateSettings,
   onDataChanged,
   onThemeChange,
   onColorChange,
@@ -150,16 +158,19 @@ export function SettingsView({
                   <Palette className="w-4 h-4 text-primary" />
                   <Label className="font-medium">主题颜色</Label>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                   {THEME_COLORS.map((color) => (
                     <motion.button
                       key={color.value}
                       onClick={() => onColorChange(color.value)}
-                      className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${color.gradient} shadow-md transition-all ${
+                      className={`relative w-12 h-12 rounded-xl shadow-md transition-all ${
                         primaryColor === color.value 
                           ? 'ring-2 ring-offset-2 ring-primary scale-110 shadow-lg' 
                           : 'hover:scale-105 opacity-70 hover:opacity-100'
                       }`}
+                      style={{
+                        background: `linear-gradient(135deg, ${color.value}, ${color.value}80)`
+                      }}
                       title={color.name}
                       whileHover={{ scale: primaryColor === color.value ? 1.1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -226,20 +237,8 @@ export function SettingsView({
           </h2>
           <ReminderManager 
             items={[]} 
-            settings={{ 
-              theme: 'system',
-              primaryColor: '#2A5CAA',
-              currency: '¥',
-              quantityUnit: '件',
-              reminderEnabled: true,
-              reminderTime: '09:00',
-              reminderDaysBefore: 3,
-              autoBackup: false,
-              backupFrequency: 'weekly',
-              defaultCategory: '日用品',
-              defaultCalculationType: 'perUse'
-            }} 
-            onUpdateSettings={() => {}}
+            settings={settings} 
+            onUpdateSettings={onUpdateSettings}
           />
         </motion.section>
 

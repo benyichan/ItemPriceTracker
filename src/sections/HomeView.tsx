@@ -1,23 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { 
-  Plus, 
-  FileText, 
-  ChevronRight, 
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  Package,
-  Sparkles,
-  DollarSign,
-  Clock
-} from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Item } from '@/types';
 import { formatCurrency, calculateUnitPrice, calculateEndDate, getRemainingDays, getDaysDifference, formatDate } from '@/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
+import { Plus, Package, BarChart3, ChevronRight, TrendingUp, TrendingDown, Sparkles, DollarSign, Calendar } from 'lucide-react';
 
 interface HomeViewProps {
   items: Item[];
@@ -68,7 +56,6 @@ export function HomeView({
   onViewStatistics,
 }: HomeViewProps) {
   const [animatedCost, setAnimatedCost] = useState(0);
-  const { primaryColor } = useTheme();
   
   // 动画显示金额
   useEffect(() => {
@@ -137,7 +124,7 @@ export function HomeView({
     <div className="min-h-screen bg-background pb-32">
       {/* 顶部成本概览 - 科技感渐变卡片 */}
       <motion.div 
-        className="relative overflow-hidden rounded-b-3xl"
+        className="relative overflow-hidden rounded-b-3xl gradient-tech"
         initial={{ opacity: 0, y: -50, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{
@@ -147,7 +134,6 @@ export function HomeView({
           stiffness: 120,
           damping: 20
         }}
-        style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)` }}
       >
         {/* 背景装饰 */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30" />
@@ -167,10 +153,17 @@ export function HomeView({
               whileHover={{ x: 5 }}
             >
               <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                animate={{
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
               >
-                <Sparkles className="w-6 h-6 text-white/80" />
+                <DollarSign className="text-white/90 w-5 h-5" />
               </motion.div>
               <p className="text-white/80 text-sm font-medium tracking-wider uppercase">月度摊销成本</p>
             </motion.div>
@@ -194,7 +187,7 @@ export function HomeView({
                     className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full"
                     whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.3)' }}
                   >
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="text-white w-4 h-4" />
                     <span className="font-medium">+{monthlyComparison.growthRate.toFixed(1)}%</span>
                   </motion.div>
                   <span className="text-white/70">较上月</span>
@@ -205,7 +198,7 @@ export function HomeView({
                     className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full"
                     whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.3)' }}
                   >
-                    <TrendingDown className="w-4 h-4" />
+                    <TrendingDown className="text-white w-4 h-4" />
                     <span className="font-medium">{monthlyComparison.growthRate.toFixed(1)}%</span>
                   </motion.div>
                   <span className="text-white/70">较上月</span>
@@ -249,15 +242,11 @@ export function HomeView({
                   className="flex items-center gap-3 text-muted-foreground mb-4"
                   whileHover={{ x: 8 }}
                 >
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.1 }}
-                  >
-                    <DollarSign className="w-6 h-6" />
-                  </motion.div>
+                  <DollarSign className="w-5 h-5 text-primary" />
                   <span className="text-sm font-semibold uppercase tracking-wide">总花费</span>
                 </motion.div>
                 <motion.p 
-                  className="text-3xl font-bold mb-3"
+                  className="text-3xl font-bold mb-3 text-primary"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.7 }}
@@ -292,15 +281,11 @@ export function HomeView({
                   className="flex items-center gap-3 text-muted-foreground mb-4"
                   whileHover={{ x: 8 }}
                 >
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.1 }}
-                  >
-                    <Clock className="w-6 h-6" />
-                  </motion.div>
+                  <Calendar className="w-5 h-5 text-primary" />
                   <span className="text-sm font-semibold uppercase tracking-wide">每日成本</span>
                 </motion.div>
                 <motion.p 
-                  className="text-3xl font-bold mb-3"
+                  className="text-3xl font-bold mb-3 text-primary"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.7 }}
@@ -353,15 +338,11 @@ export function HomeView({
             transition={{ delay: 0.5 }}
           >
             <motion.div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
-              style={{ 
-                background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 6px 25px ${primaryColor}40`
-              }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center gradient-tech shadow-xl shadow-primary/40 group-hover:shadow-primary/40 transition-all duration-300"
               whileHover={{ rotate: 90 }}
               transition={{ duration: 0.3 }}
             >
-              <Plus className="w-7 h-7 text-white" />
+              <Plus className="text-white w-8 h-8" />
             </motion.div>
             <span className="text-sm font-semibold text-center">添加物品</span>
           </motion.button>
@@ -387,15 +368,11 @@ export function HomeView({
             transition={{ delay: 0.6 }}
           >
             <motion.div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
-              style={{ 
-                background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 6px 25px ${primaryColor}40`
-              }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center gradient-tech shadow-xl shadow-primary/40 group-hover:shadow-primary/40 transition-all duration-300"
               whileHover={{ scale: 1.1 }}
               transition={{ duration: 0.2 }}
             >
-              <Package className="w-7 h-7 text-white" />
+              <Package className="text-white w-8 h-8" />
             </motion.div>
             <span className="text-sm font-semibold text-center">物品列表</span>
           </motion.button>
@@ -421,15 +398,11 @@ export function HomeView({
             transition={{ delay: 0.7 }}
           >
             <motion.div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-primary/40 transition-all duration-300"
-              style={{ 
-                background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-                boxShadow: `0 6px 25px ${primaryColor}40`
-              }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center gradient-tech shadow-xl shadow-primary/40 group-hover:shadow-primary/40 transition-all duration-300"
               whileHover={{ rotate: -15 }}
               transition={{ duration: 0.2 }}
             >
-              <FileText className="w-7 h-7 text-white" />
+              <BarChart3 className="text-white w-8 h-8" />
             </motion.div>
             <span className="text-sm font-semibold text-center">统计分析</span>
           </motion.button>
@@ -443,7 +416,6 @@ export function HomeView({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
             >
-              <AlertTriangle className="w-6 h-6 text-amber-500" />
               <h2 className="text-xl font-semibold">即将到期</h2>
               <motion.span 
                 className="bg-amber-100 text-amber-600 text-xs px-3 py-1 rounded-full font-medium"
@@ -480,7 +452,7 @@ export function HomeView({
                             />
                           ) : (
                             <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shadow-sm">
-                              <Package className="w-6 h-6 text-muted-foreground" />
+                              <Package className="text-muted-foreground w-8 h-8" />
                             </div>
                           )}
                           <div className="flex-1">
@@ -493,7 +465,7 @@ export function HomeView({
                         <motion.div
                           whileHover={{ rotate: 90 }}
                         >
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          <ChevronRight className="text-muted-foreground w-5 h-5" />
                         </motion.div>
                       </CardContent>
                     </Card>
@@ -556,7 +528,7 @@ export function HomeView({
                             />
                           ) : (
                             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center shadow-sm">
-                              <Package className="w-8 h-8 text-muted-foreground" />
+                              <Package className="text-muted-foreground w-8 h-8" />
                             </div>
                           )}
                           <div className="flex-1">
@@ -597,7 +569,7 @@ export function HomeView({
               animate={{ opacity: 1, y: 0 }}
             >
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-5">
-                <Package className="w-10 h-10 text-muted-foreground" />
+                <Package className="text-muted-foreground w-10 h-10" />
               </div>
               <p className="text-muted-foreground mb-5 text-base">暂无物品</p>
               <motion.div
@@ -608,7 +580,7 @@ export function HomeView({
                   onClick={onAddItem} 
                   className="rounded-full px-8 py-3"
                 >
-                  <Plus className="w-5 h-5 mr-2" />
+                  <span className="mr-2 font-bold">+</span>
                   添加第一个物品
                 </Button>
               </motion.div>
@@ -640,32 +612,28 @@ export function HomeView({
                 // 根据排名设置不同的样式
                 let cardClassName = '';
                 let badgeClassName = '';
-                let badgeContent = '';
+
                 let hoverEffect = {};
                 
                 switch (index) {
                   case 0: // 第1名
                     cardClassName = "cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all border-2 border-primary/70 bg-gradient-to-br from-primary/5 to-transparent hover:from-primary/10 rounded-xl scale-105";
-                    badgeClassName = "h-6 flex items-center justify-center text-lg font-bold flex-shrink-0";
-                    badgeContent = "🥇";
+                    badgeClassName = "h-14 w-14 flex items-center justify-center flex-shrink-0";
                     hoverEffect = { x: -8, scale: 1.02 };
                     break;
                   case 1: // 第2名
                     cardClassName = "cursor-pointer hover:shadow-xl hover:shadow-primary/15 transition-all border-2 border-primary/50 bg-gradient-to-br from-primary/3 to-transparent hover:from-primary/8 rounded-xl scale-102";
-                    badgeClassName = "h-6 flex items-center justify-center text-base font-bold flex-shrink-0";
-                    badgeContent = "🥈";
+                    badgeClassName = "h-14 w-14 flex items-center justify-center flex-shrink-0";
                     hoverEffect = { x: -6, scale: 1.01 };
                     break;
                   case 2: // 第3名
                     cardClassName = "cursor-pointer hover:shadow-lg hover:shadow-primary/10 transition-all border-2 border-primary/30 bg-gradient-to-br from-primary/2 to-transparent hover:from-primary/5 rounded-xl";
-                    badgeClassName = "h-6 flex items-center justify-center text-sm font-bold flex-shrink-0";
-                    badgeContent = "🥉";
+                    badgeClassName = "h-14 w-14 flex items-center justify-center flex-shrink-0";
                     hoverEffect = { x: -5 };
                     break;
                   default:
                     cardClassName = "cursor-pointer hover:shadow-xl hover:shadow-primary/10 transition-all border-border hover:border-primary/30 rounded-xl";
-                    badgeClassName = "h-6 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0";
-                    badgeContent = (index + 1).toString();
+                    badgeClassName = "h-10 w-10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0";
                     hoverEffect = { x: -5 };
                 }
                 
@@ -683,12 +651,38 @@ export function HomeView({
                     >
                       <CardContent className="p-5">
                         <div className="flex items-center gap-6 mb-4">
-                          <motion.span 
+                          <motion.div 
                             className={badgeClassName}
                             whileHover={{ scale: 1.2, rotate: 15 }}
                           >
-                            {badgeContent}
-                          </motion.span>
+                            {index === 0 && (
+                              <motion.div
+                                animate={{ rotate: [0, 360] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                              >
+                                <Sparkles className="w-10 h-10 text-yellow-500" />
+                              </motion.div>
+                            )}
+                            {index === 1 && (
+                              <motion.div
+                                animate={{ rotate: [0, 360] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0.5 }}
+                              >
+                                <Sparkles className="w-10 h-10 text-gray-400" />
+                              </motion.div>
+                            )}
+                            {index === 2 && (
+                              <motion.div
+                                animate={{ rotate: [0, 360] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 1 }}
+                              >
+                                <Sparkles className="w-10 h-10 text-amber-600" />
+                              </motion.div>
+                            )}
+                            {index >= 3 && (
+                              <span className="text-sm font-bold text-primary">{index + 1}</span>
+                            )}
+                          </motion.div>
                           <div className="flex-1">
                             <p className={`font-bold text-xl ${index === 0 ? 'text-yellow-700 dark:text-yellow-400' : ''}`}>{item.name}</p>
                             <p className="text-sm text-muted-foreground mt-1">
@@ -728,11 +722,6 @@ export function HomeView({
       <motion.button
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
-        whileHover={{
-          scale: 1.15,
-          rotate: 90,
-          boxShadow: `0 8px 30px ${primaryColor}60`
-        }}
         whileTap={{
           scale: 0.9,
           transition: {
@@ -740,10 +729,11 @@ export function HomeView({
           }
         }}
         onClick={onAddItem}
-        className="fixed bottom-32 right-6 w-16 h-16 rounded-2xl shadow-2xl flex items-center justify-center z-50"
-        style={{ 
-          background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}99 100%)`,
-          boxShadow: `0 6px 25px ${primaryColor}40`
+        className="fixed bottom-32 right-6 w-16 h-16 rounded-2xl shadow-2xl flex items-center justify-center z-50 gradient-tech shadow-xl shadow-primary/40"
+        whileHover={{
+          scale: 1.15,
+          rotate: 90,
+          boxShadow: '0 8px 30px hsl(var(--primary)/60)'
         }}
       >
         <motion.div
@@ -758,7 +748,7 @@ export function HomeView({
         >
           <div className="w-full h-full border-2 border-white/30 rounded-2xl animate-ping" />
         </motion.div>
-        <Plus className="w-7 h-7 text-white relative z-10" />
+        <span className="text-white font-bold text-2xl relative z-10">+</span>
       </motion.button>
     </div>
   );

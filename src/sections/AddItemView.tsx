@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Item } from '@/types';
 import { formatCurrency, calculateUnitPrice } from '@/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
 
 interface AddItemViewProps {
   currency: string;
@@ -48,7 +47,6 @@ export function AddItemView({
   const [name, setName] = useState(editingItem?.name || '');
   const [totalCost, setTotalCost] = useState(editingItem?.totalCost?.toString() || '');
   const [quantity, setQuantity] = useState(editingItem?.quantity?.toString() || '1');
-  useTheme();
   const [purchaseDate, setPurchaseDate] = useState(
     editingItem?.purchaseDate || new Date().toISOString().split('T')[0]
   );
