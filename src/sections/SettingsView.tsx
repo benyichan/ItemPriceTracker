@@ -26,6 +26,7 @@ import type { ThemeColor } from '@/hooks/useTheme';
 import { clearAllData } from '@/lib/db';
 import { BackupManager } from '@/components/BackupManager';
 import { ReminderManager } from '@/components/ReminderManager';
+import { CategoryManager } from '@/components/CategoryManager';
 
 interface SettingsViewProps {
   settings: Settings;
@@ -240,6 +241,14 @@ export function SettingsView({
             settings={settings} 
             onUpdateSettings={onUpdateSettings}
           />
+        </motion.section>
+
+        {/* 类别管理 */}
+        <motion.section variants={itemVariants}>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+            类别管理
+          </h2>
+          <CategoryManager onDataChanged={onDataChanged} />
         </motion.section>
 
         {/* 关于 */}

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { ArrowLeft, Camera, Image as ImageIcon, X, Check, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Item } from '@/types';
 import { formatCurrency, calculateUnitPrice } from '@/lib/utils';
+import { getAllCategories } from '@/lib/db';
 
 interface AddItemViewProps {
   currency: string;
@@ -16,7 +17,14 @@ interface AddItemViewProps {
   onCancel: () => void;
 }
 
-const CATEGORIES = ['食品', '日用品', '电子产品', '服装', '书籍', '其他'];
+// 类别类型定义
+interface Category {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -60,6 +68,25 @@ export function AddItemView({
   const [image, setImage] = useState(editingItem?.image || '');
   const [category, setCategory] = useState(editingItem?.category || defaultCategory);
   const [notes, setNotes] = useState(editingItem?.notes || '');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // 从数据库获取类别
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('获取类别失败:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // 实时计算单价 - 购买数量不参与计算
   const unitPrice = useMemo(() => calculateUnitPrice(
@@ -381,21 +408,27 @@ export function AddItemView({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">物品类别</Label>
                 <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => (
-                    <motion.button
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        category === cat
-                          ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
-                          : 'bg-muted hover:bg-muted/80'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {cat}
-                    </motion.button>
-                  ))}
+                  {loadingCategories ? (
+                    <div className="text-sm text-muted-foreground">加载类别中...</div>
+                  ) : categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <motion.button
+                        key={cat.id}
+                        onClick={() => setCategory(cat.name)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          category === cat.name
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                            : 'bg-muted hover:bg-muted/80'
+                        }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {cat.name}
+                      </motion.button>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">暂无类别</div>
+                  )}
                 </div>
               </div>
               

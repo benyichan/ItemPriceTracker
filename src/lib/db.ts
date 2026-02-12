@@ -25,31 +25,75 @@ interface ItemManagerDB extends DBSchema {
       'by-date': string;
     };
   };
+  categories: {
+    key: string;
+    value: {
+      id: string;
+      name: string;
+      isDefault: boolean;
+      createdAt: string;
+      updatedAt: string;
+    };
+    indexes: {
+      'by-name': string;
+    };
+  };
 }
 
 const DB_NAME = 'ItemManagerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let db: IDBPDatabase<ItemManagerDB> | null = null;
+
+// 默认类别
+const DEFAULT_CATEGORIES = [
+  { id: 'default-1', name: '视频', isDefault: true },
+  { id: 'default-2', name: '书籍', isDefault: true },
+  { id: 'default-3', name: '电子产品', isDefault: true },
+  { id: 'default-4', name: '服装', isDefault: true },
+  { id: 'default-5', name: '其他', isDefault: true },
+];
 
 export async function initDB(): Promise<IDBPDatabase<ItemManagerDB>> {
   if (db) return db;
   
   db = await openDB<ItemManagerDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, _oldVersion, _newVersion) {
       // 创建物品存储
-      const itemStore = db.createObjectStore('items', { keyPath: 'id' });
-      itemStore.createIndex('by-status', 'status');
-      itemStore.createIndex('by-category', 'category');
-      itemStore.createIndex('by-date', 'purchaseDate');
+      if (!db.objectStoreNames.contains('items')) {
+        const itemStore = db.createObjectStore('items', { keyPath: 'id' });
+        itemStore.createIndex('by-status', 'status');
+        itemStore.createIndex('by-category', 'category');
+        itemStore.createIndex('by-date', 'purchaseDate');
+      }
       
       // 创建设置存储
-      db.createObjectStore('settings', { keyPath: 'theme' });
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'theme' });
+      }
       
       // 创建提醒存储
-      const reminderStore = db.createObjectStore('reminders', { keyPath: 'id' });
-      reminderStore.createIndex('by-item', 'itemId');
-      reminderStore.createIndex('by-date', 'reminderDate');
+      if (!db.objectStoreNames.contains('reminders')) {
+        const reminderStore = db.createObjectStore('reminders', { keyPath: 'id' });
+        reminderStore.createIndex('by-item', 'itemId');
+        reminderStore.createIndex('by-date', 'reminderDate');
+      }
+      
+      // 创建类别存储
+      if (!db.objectStoreNames.contains('categories')) {
+        const categoryStore = db.createObjectStore('categories', { keyPath: 'id' });
+        categoryStore.createIndex('by-name', 'name');
+        
+        // 添加默认类别
+        const now = new Date().toISOString();
+        DEFAULT_CATEGORIES.forEach(category => {
+          categoryStore.put({
+            ...category,
+            createdAt: now,
+            updatedAt: now,
+          });
+        });
+      }
     },
   });
   
@@ -293,4 +337,143 @@ export function shouldRunAutoBackup(lastBackupDate: string | null, frequency: 'd
     default:
       return false;
   }
+}
+
+// 类别相关操作
+export async function getAllCategories(): Promise<Array<{
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}>> {
+  const database = await initDB();
+  return database.getAll('categories');
+}
+
+export async function addCategory(name: string): Promise<{
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+} | null> {
+  try {
+    const database = await initDB();
+    
+    // 检查类别名称是否已存在
+    const existingCategories = await database.getAll('categories');
+    if (existingCategories.some(cat => cat.name === name)) {
+      throw new Error('类别名称已存在');
+    }
+    
+    // 检查类别总数是否达到上限
+    if (existingCategories.length >= 10) {
+      throw new Error('类别总数已达到上限（10个）');
+    }
+    
+    // 创建新类别
+    const newCategory = {
+      id: `category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      isDefault: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await database.put('categories', newCategory);
+    return newCategory;
+  } catch (error) {
+    console.error('添加类别失败:', error);
+    return null;
+  }
+}
+
+export async function updateCategory(id: string, name: string): Promise<boolean> {
+  try {
+    const database = await initDB();
+    
+    // 获取类别
+    const category = await database.get('categories', id);
+    if (!category) {
+      throw new Error('类别不存在');
+    }
+    
+    // 检查是否为默认类别
+    if (category.isDefault) {
+      throw new Error('默认类别名称不允许修改');
+    }
+    
+    // 检查新名称是否与其他类别重复
+    const existingCategories = await database.getAll('categories');
+    if (existingCategories.some(cat => cat.name === name && cat.id !== id)) {
+      throw new Error('类别名称已存在');
+    }
+    
+    // 更新类别
+    const updatedCategory = {
+      ...category,
+      name,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await database.put('categories', updatedCategory);
+    return true;
+  } catch (error) {
+    console.error('更新类别失败:', error);
+    return false;
+  }
+}
+
+export async function deleteCategory(id: string): Promise<boolean> {
+  try {
+    const database = await initDB();
+    
+    // 获取类别
+    const category = await database.get('categories', id);
+    if (!category) {
+      throw new Error('类别不存在');
+    }
+    
+    // 检查是否为默认类别
+    if (category.isDefault) {
+      throw new Error('默认类别不允许删除');
+    }
+    
+    // 检查该类别下是否存在物品
+    const itemsInCategory = await database.getAllFromIndex('items', 'by-category', category.name);
+    if (itemsInCategory.length > 0) {
+      throw new Error('该类别下存在物品，无法删除');
+    }
+    
+    // 删除类别
+    await database.delete('categories', id);
+    return true;
+  } catch (error) {
+    console.error('删除类别失败:', error);
+    return false;
+  }
+}
+
+export async function getCategoryById(id: string): Promise<{
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+} | undefined> {
+  const database = await initDB();
+  return database.get('categories', id);
+}
+
+export async function getCategoryByName(name: string): Promise<{
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+} | undefined> {
+  const database = await initDB();
+  const categories = await database.getAll('categories');
+  return categories.find(cat => cat.name === name);
 }
